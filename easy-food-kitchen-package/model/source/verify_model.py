@@ -9,6 +9,20 @@ import build_model as b
 
 def check_layout(model):
     floor = [i for i in model.items if i['cat'] not in ('under', 'overhead')]
+    room = model.rooms[0]
+    assert room['code'] == 'WC' and room['door']['type'] == 'accordion'
+    assert room['x0'] == 0 and room['y1'] == b.D
+    assert room['access'] >= b.SITE['wc_access_min'] - 1e-6
+    assert room['door']['y1'] < b.D - 0.60, 'Door must clear rear prep table'
+    for item in model.items:
+        overlap = (min(item['x1'], room['x1']) - max(item['x0'], room['x0']) > 1e-5 and
+                   min(item['y1'], room['y1']) - max(item['y0'], room['y0']) > 1e-5)
+        assert not overlap, ('Equipment intrudes into retained WC', item)
+    # A continuous strip from the main aisle to the WC door must remain unoccupied.
+    access = dict(x0=room['x1'], x1=b.W - 0.70, y0=room['y0'], y1=room['door']['y1'])
+    for item in floor:
+        assert not (min(item['x1'], access['x1']) - max(item['x0'], access['x0']) > 1e-5 and
+                    min(item['y1'], access['y1']) - max(item['y0'], access['y0']) > 1e-5), ('WC path blocked', item)
     for i, a in enumerate(floor):
         assert -1e-6 <= a['x0'] < a['x1'] <= b.W + 1e-6, a
         assert -1e-6 <= a['y0'] < a['y1'] <= b.D + 1e-6, a
@@ -66,13 +80,20 @@ def check_export(variant):
 if __name__ == '__main__':
     original = b.SITE.copy()
     try:
-        for width in (2.45, 2.60, 2.79, 2.95):
+        for width in (2.70, 2.79, 2.95):
             b.configure_site(W=width)
             assert b.SITE['win_x1'] == round(width - b.SITE['front_right_inset'], 3)
             for builder in (b.layout_A, b.layout_B):
                 m = builder()
                 count = check_layout(m)
                 print(f'W={width:.2f} {m.name}: {count:,} triangles; geometry, mesh footprints and layout clearances OK')
+        for width in (2.45, 2.60):
+            b.configure_site(W=width)
+            for builder in (b.layout_A, b.layout_B):
+                try: builder()
+                except ValueError: pass
+                else: raise AssertionError('Narrow width must flag the WC access pinch point')
+            print(f'W={width:.2f}: correctly rejected; WC access needs redesign')
     finally:
         b.configure_site(**original)
     for variant in ('A', 'B'):

@@ -20,6 +20,7 @@ const shots = [
   ['B', 'flow', '08-B-staff-and-food-flow.png'],
   ['A', 'equipment', '09-A-equipment-detail.png'],
   ['A', 'hood_detail', '10-A-hood-filters-detail.png'],
+  ['A', 'wc', '11-A-retained-wc-accordion.png'],
 ];
 (async () => {
   const browser = await chromium.launch({ headless: true, executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe',

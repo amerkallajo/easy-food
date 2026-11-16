@@ -24,7 +24,7 @@ const { chromium } = require('playwright');
         await page.waitForFunction(() => window.__ready === true);
       }
       assert.match(await page.locator('#title').textContent(), new RegExp('Layout ' + variant));
-      for (const view of ['cutaway', 'top', 'interior_front', 'interior_back', 'exterior', 'flow', 'equipment', 'hood_detail']) {
+      for (const view of ['cutaway', 'top', 'interior_front', 'interior_back', 'exterior', 'flow', 'equipment', 'hood_detail', 'wc']) {
         await page.locator(`#views button[data-v="${view}"]`).click();
         assert.equal(await page.locator(`#views button[data-v="${view}"]`).getAttribute('class'), 'on');
         const canvas = await page.locator('canvas').first().evaluate(c => ({ width: c.width, height: c.height }));
@@ -32,6 +32,7 @@ const { chromium } = require('playwright');
         if (view === 'cutaway') {
           const labels = await page.locator('#labels').textContent();
           assert(labels.includes('E03') && labels.includes('E08') && labels.includes('E13'));
+          assert(labels.includes('WC'));
         }
         if (variant === 'B' && ['equipment', 'hood_detail'].includes(view)) {
           const review = path.resolve(__dirname, '../../renders/review');
@@ -39,7 +40,7 @@ const { chromium } = require('playwright');
           await page.screenshot({ path: path.join(review, `B-${view}.png`) });
         }
       }
-      console.log(`${variant}: eight camera views and equipment labels OK`);
+      console.log(`${variant}: nine camera views, retained WC and equipment labels OK`);
     }
     await page.locator('#b-lang').click();
     assert.equal(await page.locator('html').getAttribute('lang'), 'ar');

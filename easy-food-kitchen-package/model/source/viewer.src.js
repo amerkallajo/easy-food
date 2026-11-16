@@ -18,36 +18,39 @@ const P = (x, depth, up) => new THREE.Vector3(x, up, -depth);
 const VIEWS = {
   cutaway: { en: 'Cutaway 3D - roof, right wall and shopfront removed', ar: 'مقطع ثلاثي الأبعاد - بدون السقف والجدار الأيمن والواجهة', btn: 'مقطع 3D',
     pos: P(7.2, -3.4, 6.4), tgt: P(1.3, 2.5, 0.6), fov: 34,
-    hide: ['ceiling', 'wall_right', 'front', 'people_out', 'people_in', 'flow', 'context', 'site', 'highshelf'], labels: 'equip' },
+    hide: ['ceiling', 'wall_right', 'front', 'people_out', 'people_in', 'flow', 'context', 'site', 'highshelf', 'wc_upper'], labels: 'equip' },
   top: { en: 'Top-down cutaway (street at right)', ar: 'مسقط علوي (الشارع إلى اليمين)', btn: 'مسقط علوي',
     ortho: 2.05, pos: P(CX, 2.05, 12), tgt: P(CX, 2.05, 0), up: [1, 0, 0],
-    hide: ['ceiling', 'people_out', 'flow', 'context', 'mep', 'highshelf', 'shelves'], labels: 'codes' },
+    hide: ['ceiling', 'people_out', 'flow', 'context', 'mep', 'highshelf', 'shelves', 'wc_upper'], labels: 'codes' },
   interior_front: { en: 'Interior - from the staff door looking to the back', ar: 'من الداخل - من باب الموظفين باتجاه الخلف', btn: 'داخلي من الباب',
     pos: P(1.2, 0.22, 1.66), tgt: P(1.65, 4.8, 0.95), fov: 80,
     hide: ['people_out', 'flow', 'people_in'], labels: 'none', interior: true },
   interior_back: { en: 'Interior - from the back prep area looking to the service window', ar: 'من الداخل - من منطقة التحضير باتجاه نافذة الخدمة', btn: 'داخلي من الخلف',
-    pos: P(0.8, 4.3, 1.72), tgt: P(2.1, 0.0, 1.0), fov: 76,
+    pos: P(1.68, 4.30, 1.72), tgt: P(1.65, 0.0, 1.0), fov: 78,
     hide: ['flow', 'people_in'], labels: 'none', interior: true },
   exterior: { en: 'Exterior - signage, order and collect positions', ar: 'الواجهة - اللافتة ونافذتا الطلب والاستلام', btn: 'الواجهة',
     pos: P(-0.7, -6.8, 1.85), tgt: P(1.5, 0, 1.80), fov: 56,
     hide: ['flow', 'ceiling'], labels: 'ext', exterior: true },
   flow: { en: 'Staff movement and food flow', ar: 'حركة الموظفين ومسار الطعام', btn: 'مسار العمل',
     pos: P(4.6, -1.4, 9.8), tgt: P(1.35, 2.45, 0.3), fov: 34,
-    hide: ['ceiling', 'wall_right', 'front', 'people_out', 'context', 'site', 'mep', 'highshelf', 'shelves'], labels: 'stations' },
+    hide: ['ceiling', 'wall_right', 'front', 'people_out', 'context', 'site', 'mep', 'highshelf', 'shelves', 'wc_upper'], labels: 'stations' },
   equipment: { en: 'Equipment detail - recessed doors, handles and worktop edges', ar: 'تفاصيل المعدات - الأبواب والمقابض وحواف الأسطح', btn: 'تفاصيل المعدات',
     pos: P(1.05, 0.95, 1.32), tgt: P(2.35, 2.35, 0.77), fov: 58,
-    posB: P(1.72, 1.15, 1.32), tgtB: P(0.35, 2.80, 0.77),
+    posB: P(1.05, 1.90, 1.32), tgtB: P(2.35, 3.15, 0.77),
     hide: ['people_out', 'people_in', 'flow', 'highshelf'], labels: 'none', interior: true },
   hood_detail: { en: 'Hood detail - baffle filters, rolled lip and duct joints', ar: 'تفاصيل الشفّاط - فلاتر الدهون والحافة ووصلات المجرى', btn: 'تفاصيل الشفّاط',
-    pos: P(1.30, 2.65, 1.43), tgt: P(2.35, 4.07, 2.10), fov: 56,
+    pos: P(1.30, 2.20, 1.43), tgt: P(2.35, 3.70, 2.10), fov: 56,
     posB: P(1.15, 2.10, 1.40), tgtB: P(2.35, 0.90, 2.10),
     hide: ['people_out', 'people_in', 'flow', 'highshelf'], labels: 'none', interior: true },
+  wc: { en: 'Retained rear-left WC - provisional size / accordion door', ar: 'الحمّام الخلفي اليساري - مقاس افتراضي وباب أكورديون', btn: 'الحمّام',
+    pos: P(3.90, 1.50, 5.20), tgt: P(0.80, 4.10, 0.55), fov: 44,
+    hide: ['ceiling', 'wall_right', 'front', 'people_out', 'people_in', 'context', 'site', 'flow', 'mep', 'highshelf', 'shelves', 'wc_upper'], labels: 'wc' },
 };
 let viewName = q.get('view') || 'cutaway';
 
 const T = {
-  note: { en: `Concept model: ${site.W.toFixed(2)} x ${site.D.toFixed(2)} m from the owner + photographs. Ceiling ${site.H.toFixed(2)} m, wall thickness, sidewalk depth and service points are ASSUMED.`,
-          ar: `نموذج تصوّري: ${site.W.toFixed(2)} × ${site.D.toFixed(2)} م حسب قياس المالك + الصور. السقف ${site.H.toFixed(2)} م وسماكة الجدران وعرض الرصيف ونقاط الخدمات افتراضية.` },
+  note: { en: `Concept model: ${site.W.toFixed(2)} x ${site.D.toFixed(2)} m from the owner + photographs. Ceiling ${site.H.toFixed(2)} m, wall thickness, sidewalk depth and service points are ASSUMED. Rear-left WC retained; its size is provisional.`,
+          ar: `نموذج تصوّري: ${site.W.toFixed(2)} × ${site.D.toFixed(2)} م حسب قياس المالك + الصور. السقف ${site.H.toFixed(2)} م وسماكة الجدران وعرض الرصيف ونقاط الخدمات افتراضية. الحمّام محفوظ ومقاسه افتراضي.` },
   raw: { en: 'Raw / incoming goods (steps 1-4)', ar: 'مواد نيئة / واردة (الخطوات 1-4)' },
   rte: { en: 'Cooked / ready-to-eat (steps 5-8)', ar: 'مطبوخ / جاهز للأكل (الخطوات 5-8)' },
   staff: { en: 'Staff positions at peak', ar: 'مواقع الموظفين وقت الذروة' },
@@ -272,6 +275,9 @@ function buildLabels(mode) {
         mk(mode === 'codes' ? `<b>${e.code}</b>` : `<b>${e.code}</b> ${name}`, '', new THREE.Vector3(...e.anchor), o);
       }
     });
+  } else if (mode === 'wc') {
+    mk(lang === 'ar' ? `حمّام محفوظ · ${site.wc_w.toFixed(2)} × ${site.wc_d.toFixed(2)} م افتراضي` : `Retained WC · ${site.wc_w.toFixed(2)} × ${site.wc_d.toFixed(2)} m assumed`, 'ex', P(site.wc_w / 2, site.wc_y0 + 0.65, 1.28));
+    mk(lang === 'ar' ? 'باب أكورديون · بلا قوس فتح بالممر' : 'Accordion door · no hinged aisle sweep', '', P(site.wc_w, site.wc_y0 + 0.48, 1.05));
   } else if (mode === 'stations') {
     for (const s of window.EASYFOOD_MODELS[variant].stations) {
       const txt = lang === 'ar' ? s[4] : s[3];

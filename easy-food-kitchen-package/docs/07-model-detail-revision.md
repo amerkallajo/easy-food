@@ -1,5 +1,7 @@
 # 3D model detail revision — 16 November 2026
 
+**Historical revision:** the later [retained-WC revision](08-retained-wc-revision.md) supersedes the original footprint, equipment sizes and width checks below.
+
 The model uses the owner's 2.79 × 5.06 m clear dimensions. The 3.00 m ceiling remains assumed. Layout A is selected; layout B remains an alternative.
 
 ## Changes

@@ -40,6 +40,9 @@ SITE = dict(
     transom_top=2.55,             # photo-estimate
     step=0.15,                    # photo-estimate: one stone step up from the sidewalk
     sidewalk=4.00,                # ASSUMED sidewalk depth to kerb - measure
+    wc_w=1.20, wc_d=1.60,         # ASSUMED OUTER envelope; owner confirms rear-left WC must remain
+    wc_wall=0.10, wc_door=0.85,   # ASSUMED structural opening, ~0.70 clear after folded stack / jambs
+    wc_access_min=0.80,           # design allowance, not a statutory minimum
 )
 def configure_site(**measurements):
     """Recompute derived dimensions after editing SITE or trying a survey width."""
@@ -47,6 +50,7 @@ def configure_site(**measurements):
     SITE.update(measurements)
     W, D, H = SITE['W'], SITE['D'], SITE['H']
     SITE['open_x1'] = SITE['win_x1'] = round(W - SITE['front_right_inset'], 3)
+    SITE['wc_y0'] = round(D - SITE['wc_d'], 3)
 
 
 configure_site()
@@ -69,6 +73,7 @@ MATS = {
     'steel_edge': ((0.84, 0.85, 0.86), 1, 1, 0.19, None),
     'gasket': ((0.045, 0.055, 0.050), 1, 0, 0.88, None),
     'display': ((0.25, 0.80, 0.66), 1, 0, 0.25, None),
+    'fold_panel': (hexrgb(HEX['cream']), 1, 0, 0.55, None),
     'steel_dark': ((0.36, 0.37, 0.39), 1, 0.6, 0.5, None),
     'white': ((0.95, 0.95, 0.93), 1, 0, 0.55, None),
     'tile': ((0.86, 0.88, 0.87), 1, 0, 0.35, None),
@@ -454,8 +459,8 @@ def sink_deck(n, fp, side, holes, h=0.90, d0=0.07, d1=None, drop=0.18):
 
 def prep_table(n, fp, side):
     open_table(n, fp, top=False)
-    sink_deck(n, fp, side, [(0.80, 1.20)], d0=0.08, d1=0.48)
-    tap(n, fp, side, 1.0, 0.54, 0.90, 0.28)
+    sink_deck(n, fp, side, [(0.10, 0.50)], d0=0.08, d1=0.48)
+    tap(n, fp, side, 0.30, 0.54, 0.90, 0.28)
 
 
 def tap(n, fp, side, u, d, z, height=0.32):
@@ -702,7 +707,7 @@ def people(m, variant, staff):
     t = SITE['wall_t']; st = SITE['step']
     p = m.node('people/staff', 'people_in')
     for i, (x, y) in enumerate(staff):
-        facing = 0 if i == 0 else (math.pi / 2 if variant == 'A' or i == 1 else -math.pi / 2)
+        facing = 0 if i == 0 else math.pi / 2
         person(p, x, y, 'cloth_staff', facing=facing, working=True)
     o = m.node('people/customers', 'people_out')
     if variant == 'A':
@@ -802,31 +807,94 @@ def flow_path(m, raw_pts, rte_pts):
         n.arrow(mat, bx, by, bx - ax, by - ay, size=0.16, z1=0.02)
 
 
+def retained_wc(m):
+    """Retain the owner-confirmed rear-left toilet; its envelope is still provisional."""
+    x, y, t = SITE['wc_w'], SITE['wc_y0'], SITE['wc_wall']
+    if W - 0.70 - x < SITE['wc_access_min'] - 1e-6:
+        raise ValueError('WC access below design allowance: revise equipment / survey width')
+    a = y + t + 0.015
+    b = a + SITE['wc_door']
+    m.rooms = [dict(code='WC', name='Retained toilet / accordion door', label_ar='حمّام محفوظ / باب أكورديون',
+                    x0=0, y0=y, x1=x, y1=D, status='location confirmed; envelope, partitions and opening ASSUMED',
+                    door=dict(side='right', y0=a, y1=b, type='accordion', assumed=True), access=W - 0.70 - x)]
+    low = m.node('wc/partitions-low', 'wc', code='WC', label='Retained WC - size assumed', label_ar='حمّام محفوظ - المقاس افتراضي', anchor=(x / 2, y + 0.7, 1.35))
+    upper = m.node('wc/partitions-upper', 'wc_upper')
+    for node, z0, z1 in ((low, 0, 1.12), (upper, 1.12, H)):
+        node.box('tile', 0, y, z0, x, y + t, z1)
+        for u, v in ((y + t, a), (b, D)):
+            node.box('tile', x - t, u, z0, x, v, z1)
+    upper.box('paint', x - t, a, 2.05, x, b, H)
+    low.box('floor', 0, y + t, 0.002, x - t, D, 0.012)
+    door = m.node('wc/accordion-door', 'wc')
+    for yy in (a, b - 0.018):
+        door.box('alu', x - t - 0.005, yy, 0, x + 0.005, yy + 0.018, 2.05)
+    door.box('alu', x - t, a, 2.035, x, b, 2.065)
+    # Shown folded inside the opening: no hinged sweep consumes the aisle.
+    for i in range(8):
+        yy = a + 0.018 + i * 0.011
+        xx = x - 0.045 if i % 2 else x - 0.095
+        door.quad('fold_panel', (xx, yy, 0.035), (x - 0.07, yy + 0.011, 0.035),
+                  (x - 0.07, yy + 0.011, 2.01), (xx, yy, 2.01))
+    door.tube('steel_edge', (x - 0.02, a + 0.12, 0.88), (x - 0.02, a + 0.12, 1.11), 0.010)
+    fixtures = m.node('wc/toilet-and-basin', 'wc')
+    cx, cy = x * 0.46, D - 0.45
+    fixtures.rounded_box('white', cx - 0.22, D - 0.18, 0.43, cx + 0.22, D - 0.035, 0.84, radius=0.04)
+    fixtures.cyl('white', cx, cy + 0.04, 0.02, 0.33, 0.12, seg=18)
+    fixtures.ellipsoid('white', (cx, cy, 0.28), (0.20, 0.28, 0.15))
+    fixtures.ellipsoid('steel_dark', (cx, cy - 0.025, 0.442), (0.15, 0.22, 0.014))
+    # Elliptical seat ring, open in the middle.
+    for i in range(28):
+        aa, bb = math.tau * i / 28, math.tau * (i + 1) / 28
+        fixtures.tube('white', (cx + 0.18 * math.cos(aa), cy - 0.025 + 0.25 * math.sin(aa), 0.45),
+                      (cx + 0.18 * math.cos(bb), cy - 0.025 + 0.25 * math.sin(bb), 0.45), 0.024, seg=6)
+    fixtures.cyl('steel_edge', cx, D - 0.105, 0.84, 0.849, 0.025)
+    basin(fixtures, (0.01, y + 0.15, 0.34, y + 0.48), 'L')
+    vent = m.node('wc/separate-extract-placeholder', 'wc_upper')
+    vent.box('white', 0.32, D - 0.035, 2.42, 0.57, D, 2.67)
+    for i in range(5): vent.box('gasket', 0.35, D - 0.038, 2.45 + i * 0.038, 0.54, D - 0.034, 2.462 + i * 0.038)
+
+
+def compact_left_bank(m):
+    # Two narrower upright units free enough wall length for the wash sink before the WC.
+    add(m, 'E14', 'Hand-wash basin', (0, 0.90, 0.40, 1.30), 'L', basin, 'wash', h=0.86, ar='مغسلة أيدي')
+    add(m, 'E13', 'Compact chiller A (raw / dairy)', (0, 1.35, 0.70, 1.95), 'L', fridge, 'cold', h=2.0, ar='برّاد مدمج A (نيء / ألبان)')
+    add(m, 'E12', 'Compact chiller B (veg / ready)', (0, 1.95, 0.70, 2.55), 'L', fridge, 'cold', h=2.0, ar='برّاد مدمج B (خضار / جاهز)')
+    wy = SITE['wc_y0']
+    add(m, 'E10', 'Compact 2-bowl wash sink', (0, wy - 0.90, 0.60, wy), 'L', sink2, 'wash', ar='مجلى بحوضين قبل الحمّام')
+    fp = (0, 1.35, 0.32, 2.55)
+    n = m.node('equip/E11 closed dry storage', 'shelves', code='E11', label='High dry-storage cupboard', label_ar='خزانة مواد جافة علوية', anchor=(0.18, 2.0, 2.55))
+    n.rounded_box('forest', *fp[:2], 2.12, *fp[2:], 2.55)
+    for yy in (1.65, 2.24): n.box('lime', 0.321, yy, 2.26, 0.329, yy + 0.08, 2.30)
+    m.items.append(dict(code='E11', name='High dry-storage cupboard', x0=0, y0=1.35, x1=0.32, y1=2.55, h=2.12, cat='overhead', note='closed storage above compact chillers; capacity by supplier'))
+
+
+def wc_rear_prep(m):
+    fp = (SITE['wc_w'], D - 0.60, W, D)
+    n = add(m, 'E09', 'Short prep table + produce sink', fp, 'B', prep_table, 'prep', ar='تحضير + حوض خضار يمين الحمّام')
+    length = ulen(fp, 'B')
+    top_box(n, 'steel', fp, 'B', 0.59, 0.61, 0, 0.60, 0.90, 1.15)
+    top_round(n, 'f_red', fp, 'B', 0.70, length - 0.07, 0.10, 0.45, 0.90, 0.915, radius=0.004)
+    wall_shelf(m, 'E21 shelf over prep', (SITE['wc_w'] + 0.04, D - 0.28, W - 0.05, D), 1.50, 2)
+
+
 def layout_A():
     m = Model('A')
     build_shell(m, 'A')
     R = round(W - 0.70, 2)          # front edge of the right-hand line
     add(m, 'E01', 'Service counter + POS', (1.00, 0.0, W, 0.50), None, lambda n, fp: service_counter(n, fp, 'A'), 'service', ar='كاونتر الخدمة + الكاشير')
-    add(m, 'E02', 'Packing bench', (R, 0.50, W, 1.30), 'R', cabinet, 'service', ar='طاولة التعبئة')
-    add(m, 'E03', 'Refrigerated prep counter', (R, 1.30, W, 2.70), 'R', saladette, 'cold', ar='برّاد تحضير (سلطات)')
-    add(m, 'E04', 'Bain-marie (hot hold)', (R, 2.70, W, 3.30), 'R', bain_marie, 'hot', ar='بان ماري (حفظ ساخن)')
-    add(m, 'E05', 'Gas griddle', (R, 3.30, W, 3.90), 'R', griddle, 'hot', ar='شوّاية مسطّحة (غاز)')
-    add(m, 'E06', '2-burner range', (R, 3.90, W, 4.50), 'R', gas_range, 'hot', ar='موقد غاز بعينين')
-    add(m, 'E07', 'Rice cookers', (R, 4.50, W, 5.06), 'R', rice_bench, 'hot', h=0.55, ar='طناجر الرز')
-    hood(m, (R - 0.12, 3.20, W, 5.06),
+    add(m, 'E02', 'Packing bench', (R, 0.50, W, 1.10), 'R', cabinet, 'service', ar='طاولة التعبئة')
+    add(m, 'E03', 'Refrigerated prep counter', (R, 1.10, W, 2.30), 'R', saladette, 'cold', ar='برّاد تحضير (سلطات)')
+    add(m, 'E04', 'Bain-marie (hot hold)', (R, 2.30, W, 2.86), 'R', bain_marie, 'hot', ar='بان ماري (حفظ ساخن)')
+    add(m, 'E05', 'Gas griddle', (R, 2.86, W, 3.46), 'R', griddle, 'hot', ar='شوّاية مسطّحة (غاز)')
+    add(m, 'E06', '2-burner range', (R, 3.46, W, 4.06), 'R', gas_range, 'hot', ar='موقد غاز بعينين')
+    add(m, 'E07', 'Rice cookers', (R, 4.06, W, 4.46), 'R', rice_bench, 'hot', h=0.55, ar='طناجر الرز')
+    hood(m, (R - 0.12, 2.76, W, 4.46),
          duct=[(W - 0.40, 3.6, 2.40, W - 0.05, 3.9, 2.70), (W - 0.38, 0.02, 2.62, W - 0.03, 3.9, 2.90)],
          fan=(W - 0.48, 0.05, 2.45, W, 0.60, 2.95))
-    m.items.append(dict(code='E08', name='Hood 1.85 x 0.82 + duct + fan (overhead)', x0=R - 0.12, y0=3.20, x1=W, y1=5.06, h=1.95, cat='overhead', note='duct at ceiling along right wall to facade louvre'))
-    bt = (0.0, 4.46, R, 5.06)
-    n = add(m, 'E09', 'Prep table + produce sink', bt, 'B', prep_table, 'prep', ar='طاولة تحضير + حوض غسل الخضار')
-    top_box(n, 'steel', bt, 'B', 1.28, 1.30, 0.0, 0.60, 0.90, 1.15)      # splash divider
-    top_box(n, 'f_red', bt, 'B', 1.42, R - 0.10, 0.10, 0.45, 0.90, 0.915)    # raw-protein board (red)
-    top_box(n, 'carton', bt, 'B', 0.08, 0.60, 0.10, 0.52, 0.17, 0.60)    # rice sack bin under
-    add(m, 'E10', '2-bowl wash sink', (0.0, 3.46, 0.60, 4.46), 'L', sink2, 'wash', ar='مجلى بحوضين')
-    add(m, 'E11', 'Dry-goods shelving', (0.0, 2.85, 0.50, 3.45), None, shelving, 'store', h=2.0, ar='رفوف المواد الجافة')
-    add(m, 'E12', 'Upright chiller B (veg / ready)', (0.0, 2.10, 0.70, 2.80), 'L', fridge, 'cold', h=2.0, ar='برّاد عمودي B (خضار / جاهز)')
-    add(m, 'E13', 'Upright chiller A (raw / dairy)', (0.0, 1.40, 0.70, 2.10), 'L', fridge, 'cold', h=2.0, ar='برّاد عمودي A (لحوم نيئة / ألبان)')
-    add(m, 'E14', 'Hand-wash basin', (0.0, 0.95, 0.40, 1.35), 'L', basin, 'wash', h=0.86, ar='مغسلة أيدي')
+    m.items.append(dict(code='E08', name='Hood 1.70 x 0.82 + duct + fan (overhead)', x0=R - 0.12, y0=2.76, x1=W, y1=4.46, h=1.95, cat='overhead', note='duct at ceiling along right wall to facade louvre'))
+    retained_wc(m)
+    compact_left_bank(m)
+    wc_rear_prep(m)
     lx0, lx1 = round(W - 0.65, 2), round(W - 0.04, 2)
     n = m.node('equip/E15 LPG locker', 'equip', label='LPG locker (outside access)', label_ar='خزانة الغاز (تُفتح من الخارج)', code='E15', anchor=((lx0 + lx1) / 2, 0.25, 0.8))
     n.box('steel_dark', lx0, 0.0, 0.0, lx1, 0.45, 0.80)
@@ -839,10 +907,9 @@ def layout_A():
     n.box('ink', 1.66, 0.06, 0, 2.02, 0.42, 0.62); n.box('ink', 1.36, 4.58, 0.18, 1.71, 4.98, 0.74)
     m.items.append(dict(code='E19', name='Pedal bin', x0=1.66, y0=0.06, x1=2.02, y1=0.42, h=0.62, cat='under', note=''))
     m.items.append(dict(code='E19', name='Pedal bin', x0=1.36, y0=4.58, x1=1.71, y1=4.98, h=0.74, cat='under', note=''))
-    n = m.node('equip/E17 Split AC', 'equip'); n.box('white', 0.0, 1.95, 2.42, 0.22, 2.85, 2.72)
-    m.items.append(dict(code='E17', name='Split AC (high level)', x0=0.0, y0=1.95, x1=0.22, y1=2.85, h=2.42, cat='overhead', note=''))
-    wall_shelf(m, 'E21 shelf over packing', (W - 0.32, 0.55, W, 1.28), 1.50, 2)
-    wall_shelf(m, 'E21 shelf over prep', (0.05, 4.78, 1.85, 5.06), 1.50, 2)
+    n = m.node('equip/E17 Split AC', 'equip'); n.box('white', 0.0, 0.95, 2.60, 0.22, 1.85, 2.90)
+    m.items.append(dict(code='E17', name='Split AC (high level)', x0=0.0, y0=0.95, x1=0.22, y1=1.85, h=2.60, cat='overhead', note=''))
+    wall_shelf(m, 'E21 shelf over packing', (W - 0.32, 0.55, W, 1.08), 1.50, 2)
     n = m.node('equip/E20 High storage shelf', 'highshelf'); n.box('steel', 0.02, 0.25, 2.28, 1.85, 0.95, 2.31)
     for i in range(4):
         n.box('carton', 0.08 + i * 0.44, 0.30, 2.31, 0.46 + i * 0.44, 0.90, 2.72)
@@ -850,19 +917,19 @@ def layout_A():
     n = m.node('equip/E23 Fire extinguisher', 'equip'); n.cyl('red', 0.08, 0.90, 0.9, 1.35, 0.06, seg=12)
     n = m.node('equip/DB Electrical board', 'equip'); n.box('white', W - 0.04, 0.60, 1.95, W, 1.00, 2.45)
     sx = round(R - 0.34, 2)
-    staff = [(1.48, 0.82), (sx, 2.10), (sx, 3.75)]
+    staff = [(1.48, 0.82), (sx, 1.90), (sx, 3.25)]
     people(m, 'A', staff)
     flow_path(m,
-              raw_pts=[(0.55, 0.45), (0.98, 0.45), (0.98, 1.75), (0.98, 4.20), (1.60, 4.20), (1.60, 3.80)],
-              rte_pts=[(R - 0.18, 3.55), (1.42, 3.55), (1.42, 2.60), (1.42, 1.60), (1.42, 0.62)])
+              raw_pts=[(0.55, 0.45), (0.98, 0.45), (0.98, 2.90), (1.62, 2.90), (1.62, 4.20)],
+              rte_pts=[(R - 0.18, 3.25), (1.42, 3.25), (1.42, 2.40), (1.42, 1.60), (1.42, 0.62)])
     rx = W - 0.35
     m.stations = [  # numbered workflow labels (x, y, z, English, Arabic)
         (0.50, 0.25, 1.2, '1 Receiving (staff door)', '1 الاستلام (باب الموظفين)'),
         (0.35, 2.10, 2.1, '2 Cold + dry storage', '2 التخزين المبرّد والجاف'),
-        (1.05, 4.76, 1.2, '3 Wash + raw prep', '3 الغسل وتحضير النيء'),
-        (rx, 4.00, 1.3, '4 Cook (griddle / range / rice)', '4 الطهي (شوّاية / موقد / رز)'),
-        (rx, 3.00, 1.3, '5 Hot hold', '5 الحفظ الساخن'), (rx, 2.00, 1.5, '6 Assemble', '6 تجميع الطلب'),
-        (rx, 0.90, 1.3, '7 Pack + label', '7 التعبئة والملصق'),
+        (1.78, 4.76, 1.2, '3 Wash + raw prep', '3 الغسل وتحضير النيء'),
+        (rx, 3.50, 1.3, '4 Cook (griddle / range / rice)', '4 الطهي (شوّاية / موقد / رز)'),
+        (rx, 2.56, 1.3, '5 Hot hold', '5 الحفظ الساخن'), (rx, 1.75, 1.5, '6 Assemble', '6 تجميع الطلب'),
+        (rx, 0.80, 1.3, '7 Pack + label', '7 التعبئة والملصق'),
         ((1.0 + W) / 2 + 0.4, -0.05, 1.25, '8 Hand-off', '8 التسليم'),
     ]
     m.staff = staff
@@ -877,36 +944,30 @@ def layout_B():
     add(m, 'E01', 'Service counter + POS', (1.00, 0.0, hb + 0.02, 0.50), None, lambda n, fp: service_counter(n, fp, 'B'), 'service', ar='كاونتر الخدمة + الكاشير')
     add(m, 'E05', 'Griddle (behind show-glass)', (R, 0.08, W, 0.68), 'R', griddle, 'hot', ar='شوّاية مسطّحة (خلف زجاج العرض)')
     add(m, 'E06', '2-burner range', (R, 0.68, W, 1.28), 'R', gas_range, 'hot', ar='موقد بعينين')
-    add(m, 'E07', 'Rice cookers', (R, 1.28, W, 1.84), 'R', rice_bench, 'hot', h=0.55, ar='طناجر الرز')
-    add(m, 'E04', 'Bain-marie (hot hold)', (R, 1.88, W, 2.48), 'R', bain_marie, 'hot', ar='بان ماري (حفظ ساخن)')
+    add(m, 'E07', 'Rice cookers', (R, 1.28, W, 1.68), 'R', rice_bench, 'hot', h=0.55, ar='طناجر الرز')
+    add(m, 'E04', 'Bain-marie (hot hold)', (R, 1.72, W, 2.28), 'R', bain_marie, 'hot', ar='بان ماري (حفظ ساخن)')
     hood(m, (R - 0.12, 0.02, W, 1.95), duct=[(W - 0.50, 0.02, 2.40, W - 0.05, 0.50, 2.55)], fan=None)
     m.items.append(dict(code='E08', name='Hood 1.9 x 0.82, duct < 1 m (overhead)', x0=R - 0.12, y0=0.02, x1=W, y1=1.95, h=1.95, cat='overhead', note=''))
-    add(m, 'E10', '2-bowl wash sink', (W - 0.60, 2.60, W, 3.60), 'R', sink2, 'wash', ar='مجلى بحوضين')
-    add(m, 'E13', 'Upright chiller A (raw / dairy)', (R, 3.66, W, 4.36), 'R', fridge, 'cold', h=2.0, ar='برّاد عمودي A (لحوم نيئة / ألبان)')
-    add(m, 'E12', 'Upright chiller B (veg / ready)', (R, 4.36, W, 5.06), 'R', fridge, 'cold', h=2.0, ar='برّاد عمودي B (خضار / جاهز)')
-    add(m, 'E14', 'Hand-wash basin', (0.0, 0.95, 0.40, 1.35), 'L', basin, 'wash', h=0.86, ar='مغسلة أيدي')
-    add(m, 'E02', 'Packing bench', (0.0, 1.40, 0.70, 2.10), 'L', cabinet, 'service', ar='طاولة التعبئة')
-    add(m, 'E03', 'Refrigerated prep counter', (0.0, 2.10, 0.70, 3.50), 'L', saladette, 'cold', ar='برّاد تحضير (سلطات)')
-    add(m, 'E11', 'Dry-goods shelving', (0.0, 3.55, 0.50, 4.40), None, shelving, 'store', h=2.0, ar='رفوف المواد الجافة')
-    bt = (0.0, 4.46, R - 0.04, 5.06)
-    n = add(m, 'E09', 'Prep table + produce sink', bt, 'B', prep_table, 'prep', ar='طاولة تحضير + حوض غسل الخضار')
-    top_box(n, 'f_red', bt, 'B', 1.40, R - 0.14, 0.10, 0.45, 0.90, 0.915)
+    retained_wc(m)
+    compact_left_bank(m)
+    wc_rear_prep(m)
+    add(m, 'E03', 'Compact refrigerated prep counter', (R, 2.30, W, 3.50), 'R', saladette, 'cold', ar='برّاد تحضير مدمج')
+    add(m, 'E02', 'Packing bench', (R, 3.52, W, 4.12), 'R', cabinet, 'service', ar='طاولة التعبئة')
     n = m.node('equip/E16 Inverter + battery', 'equip'); n.box('white', 1.03, 0.04, 0.05, 1.58, 0.42, 0.80)
     m.items.append(dict(code='E16', name='Inverter + LiFePO4 battery', x0=1.03, y0=0.04, x1=1.58, y1=0.42, h=0.8, cat='under', note='under counter'))
-    n = m.node('equip/E17 Split AC', 'equip'); n.box('white', 0.0, 2.2, 2.42, 0.22, 3.1, 2.72)
-    m.items.append(dict(code='E17', name='Split AC (high level)', x0=0.0, y0=2.2, x1=0.22, y1=3.1, h=2.42, cat='overhead', note=''))
-    wall_shelf(m, 'E21 shelf over prep', (0.05, 4.78, 1.85, 5.06), 1.50, 2)
-    staff = [(1.45, 0.80), (round(R - 0.34, 2), 1.35), (1.04, 2.80)]
+    n = m.node('equip/E17 Split AC', 'equip'); n.box('white', 0.0, 0.95, 2.60, 0.22, 1.85, 2.90)
+    m.items.append(dict(code='E17', name='Split AC (high level)', x0=0.0, y0=0.95, x1=0.22, y1=1.85, h=2.60, cat='overhead', note=''))
+    staff = [(1.45, 0.80), (round(R - 0.34, 2), 1.35), (round(R - 0.34, 2), 2.90)]
     people(m, 'B', staff)
     flow_path(m,
-              raw_pts=[(0.55, 0.45), (1.00, 0.45), (1.00, 3.90), (1.65, 3.90), (1.65, 4.20)],
+              raw_pts=[(0.55, 0.45), (1.00, 0.45), (1.00, 2.90), (1.65, 2.90), (1.65, 4.20)],
               rte_pts=[(R - 0.18, 4.20), (R - 0.18, 2.20), (R - 0.18, 1.00), (1.25, 1.00), (1.25, 2.60)])
     rx = W - 0.35
     m.stations = [
-        (0.50, 0.25, 1.2, '1 Receiving', '1 الاستلام'), (rx, 4.36, 2.1, '2 Cold storage (far from door)', '2 التخزين المبرّد (بعيد عن الباب)'),
-        (0.95, 4.76, 1.2, '3 Wash + raw prep', '3 الغسل وتحضير النيء'), (rx, 0.95, 1.3, '4 Cook at the front', '4 الطهي عند الواجهة'),
-        (rx, 2.18, 1.3, '5 Hot hold', '5 الحفظ الساخن'), (0.35, 2.80, 1.5, '6 Assemble (crosses aisle)', '6 التجميع (عبور الممر)'),
-        (0.35, 1.75, 1.3, '7 Pack', '7 التعبئة'), ((1.0 + hb) / 2, -0.05, 1.25, '8 Single hatch: order + collect', '8 نافذة واحدة: طلب + استلام'),
+        (0.50, 0.25, 1.2, '1 Receiving', '1 الاستلام'), (0.35, 1.95, 2.1, '2 Compact cold storage', '2 التخزين المبرّد المدمج'),
+        (1.78, 4.76, 1.2, '3 Wash + raw prep', '3 الغسل وتحضير النيء'), (rx, 0.95, 1.3, '4 Cook at the front', '4 الطهي عند الواجهة'),
+        (rx, 2.18, 1.3, '5 Hot hold', '5 الحفظ الساخن'), (rx, 2.90, 1.5, '6 Assemble', '6 تجميع الطلب'),
+        (rx, 3.80, 1.3, '7 Pack (return to front hatch)', '7 التعبئة والعودة للواجهة'), ((1.0 + hb) / 2, -0.05, 1.25, '8 Single hatch: order + collect', '8 نافذة واحدة: طلب + استلام'),
     ]
     m.staff = staff
     return m
@@ -983,7 +1044,7 @@ def write_glb(m, path):
         if name in mat_index: return mat_index[name]
         rgb, a, metal, rough, tex = MATS[name]
         pbr = dict(baseColorFactor=[lin(rgb[0]), lin(rgb[1]), lin(rgb[2]), a], metallicFactor=metal, roughnessFactor=rough)
-        md = dict(name=name, pbrMetallicRoughness=pbr, doubleSided=bool(tex) or a < 1 or name == 'cloth_staff')
+        md = dict(name=name, pbrMetallicRoughness=pbr, doubleSided=bool(tex) or a < 1 or name in {'cloth_staff', 'fold_panel'})
         if name in METALS:
             pbr['metallicRoughnessTexture'] = dict(index=texture('steel-metal-rough.png'))
             md['normalTexture'] = dict(index=texture('steel-normal.png'), scale=0.22)
@@ -1022,7 +1083,7 @@ def write_glb(m, path):
                 scene=0, scenes=[dict(name='EasyFood-' + m.name, nodes=list(range(len(nodes))))],
                 nodes=nodes, meshes=meshes, materials=materials, accessors=accs, bufferViews=views,
                 buffers=[dict(byteLength=len(buf))],
-                extras=dict(units='metres', site=SITE, note='Concept model. Width 2.79 m and depth 5.06 m supplied by owner; height, wall thickness, sidewalk depth ASSUMED; shopfront from photos.'))
+                extras=dict(units='metres', site=SITE, rooms=m.rooms, note='Concept model. Width 2.79 m and depth 5.06 m supplied by owner; height, wall thickness, sidewalk depth ASSUMED; shopfront from photos.'))
     if images:
         gltf.update(images=images, textures=textures, samplers=[dict(magFilter=9729, minFilter=9987, wrapS=10497, wrapT=10497)])
     while len(buf) % 4: buf.append(0)
@@ -1110,6 +1171,22 @@ def write_svg(m, path, title, subtitle, notes):
     A(f'<rect x="{X(wx0)}" y="{Y(-0.07)}" width="{(wx1 - wx0) * S}" height="{0.07 * S}" fill="#9ed3e0" stroke="#146B45" stroke-width="2"/>')
     if m.name == 'B':
         A(f'<rect x="{X(wx1 + 0.04)}" y="{Y(-0.07)}" width="{(SITE["win_x1"] - 0.04 - wx1 - 0.04) * S}" height="{0.07 * S}" fill="#cfe8ee" stroke="#555"/>')
+    # Retained WC: outer reservation, partitions, folded door and recognisable fixtures.
+    wx, wy, wt = SITE['wc_w'], SITE['wc_y0'], SITE['wc_wall']
+    da, db = wy + wt + 0.015, wy + wt + 0.015 + SITE['wc_door']
+    A(f'<rect x="{X(0)}" y="{Y(D)}" width="{wx*S}" height="{(D-wy)*S}" fill="#FFF8EA" stroke="#146B45" stroke-width="2"/>')
+    for a0, b0, a1, b1 in ((0, wy, wx, wy+wt), (wx-wt, wy+wt, wx, da), (wx-wt, db, wx, D)):
+        A(f'<rect x="{X(a0)}" y="{Y(b1)}" width="{(a1-a0)*S}" height="{(b1-b0)*S}" fill="url(#hatch)" stroke="#146B45"/>')
+    cx, cy = wx*0.46, D-0.45
+    A(f'<ellipse cx="{X(cx)}" cy="{Y(cy)}" rx="{0.18*S}" ry="{0.25*S}" fill="white" stroke="#777" stroke-width="2"/>')
+    A(f'<ellipse cx="{X(cx)}" cy="{Y(cy)}" rx="{0.12*S}" ry="{0.18*S}" fill="#d8e1df"/>')
+    A(f'<rect x="{X(cx-0.22)}" y="{Y(D-0.035)}" width="{0.44*S}" height="{0.145*S}" rx="4" fill="white" stroke="#777"/>')
+    for i in range(8):
+        xx = wx - (0.025 if i % 2 else 0.09)
+        A(f'<line x1="{X(xx)}" y1="{Y(da+0.018+i*0.011)}" x2="{X(wx-0.06)}" y2="{Y(da+0.029+i*0.011)}" stroke="#146B45" stroke-width="2"/>')
+    A(f'<text x="{X(wx/2)}" y="{Y(wy+0.64)}" text-anchor="middle" font-size="17" font-weight="700" fill="#146B45">WC / حمّام</text>')
+    A(f'<text x="{X(wx/2)}" y="{Y(wy+0.46)}" text-anchor="middle" font-size="11" fill="#555">{wx:.2f} x {SITE["wc_d"]:.2f} m OUTER (ASSUMED)</text>')
+    A(f'<text x="{X(wx+0.05)}" y="{Y((da+db)/2)}" font-size="11" fill="#146B45">accordion</text>')
     # equipment
     for it in m.items:
         fill, stroke = CAT[it['cat']]
@@ -1154,13 +1231,13 @@ def write_svg(m, path, title, subtitle, notes):
     R = W - 0.70
     if m.name == 'A':
         dim_h(0.70, R, 1.95, f'aisle {R - 0.70:.2f}', off=0)
-        dim_h(0.60, R, 3.95, f'aisle {R - 0.60:.2f}', off=0)
+        dim_h(SITE['wc_w'], R, 4.10, f'WC access {R - SITE["wc_w"]:.2f}', off=0)
         dim_h(0.40, R, 1.12, f'{R - 0.40:.2f}', off=0)
-        for a0, a1 in ((0.50, 1.30), (1.30, 2.70), (2.70, 3.30), (3.30, 3.90), (3.90, 4.50), (4.50, 5.06)):
+        for a0, a1 in ((0.50, 1.10), (1.10, 2.30), (2.30, 2.86), (2.86, 3.46), (3.46, 4.06), (4.06, 4.46)):
             dim_v(a0, a1, W, f'{a1 - a0:.2f}', off=t * S + 22)
     else:
         dim_h(0.70, R, 2.30, f'aisle {R - 0.70:.2f}', off=0)
-        dim_h(0.50, R, 3.95, f'aisle {R - 0.50:.2f}', off=0)
+        dim_h(SITE['wc_w'], R, 4.20, f'WC access {R - SITE["wc_w"]:.2f}', off=0)
         dim_h(0.40, R, 1.12, f'{R - 0.40:.2f}', off=0)
     dim_h(SITE['open_x0'], SITE['open_x1'], -t - 0.30, 'shopfront opening about 2.6 (photo estimate - measure)', off=46)
     dim_h(dx0, dx1, -t - 0.30, '0.85', off=20)
@@ -1202,22 +1279,23 @@ if __name__ == '__main__':
               'Dashed = under-counter or overhead items.',
               'Width 2.79 m as confirmed by the owner (phone measurement);',
               'tape-check at front, middle and back before fabrication.',
-              '!A toilet door is visible in photo reflections at the rear - its',
-              '!position and whether it is inside the 5.06 m is NOT confirmed.',
+              'WC retained inside rear-left corner (owner-confirmed).',
+              '!WC 1.20 x 1.60 m OUTER envelope / door are ASSUMED.',
+              '!Accordion door requested; hygiene separation needs design.',
               '!Water / drain / power / gas points are ASSUMED, not surveyed.']
     for m, title, sub, notes in (
             (layout_A(), 'Easy Food - Layout A (selected): back-to-front line',
-             'Storage + wash on the left, cook - hold - assemble - pack on the right, two-sash window: order left, collect right.',
+             'Retained rear-left WC; compact cold + wash left, cook / assembly right; two-sash service.',
              ['Flow: door - storage (E13/E12/E11) - wash + prep (E10/E09)', '- cook (E05-E07) - hot hold (E04) - assemble (E03)', '- pack (E02) - collect sash (E01).', ''] + common),
             (layout_B(), 'Easy Food - Layout B (alternative): cook at the front',
-             'Hot line behind show-glass with a duct under 1 m; cold assembly opposite; single hatch for order and collect.',
-             ['Shortest duct, but one 1.04 m hatch, heat at the customer,', 'cook and assembler back-to-back in a 1.39 m aisle, and no', 'acceptable LPG locker position (implies electric cooking).', ''] + common)):
+             'Retained rear-left WC; front cooking, assembly / packing on right, single service hatch.',
+             ['Shortest duct, but one 1.04 m hatch, heat at the customer,', 'packing at the rear requires a return trip to the hatch; no', 'acceptable LPG locker position (implies electric cooking).', ''] + common)):
         glb = os.path.join(PKG, 'model', f'easy-food-kitchen-{m.name}.glb')
         cnt = write_glb(m, glb)
         write_obj(m, os.path.join(PKG, 'model', f'easy-food-kitchen-{m.name}.obj'))
         write_svg(m, os.path.join(PKG, 'plans', f'layout-{m.name}.svg'), title, sub, notes)
-        with open(os.path.join(PKG, 'model', f'layout-{m.name}.json'), 'w') as fh:
-            json.dump(dict(site=SITE, units='metres', equipment=m.items, staff_positions=m.staff), fh, indent=1, ensure_ascii=False)
+        with open(os.path.join(PKG, 'model', f'layout-{m.name}.json'), 'w', encoding='utf-8') as fh:
+            json.dump(dict(site=SITE, units='metres', equipment=m.items, staff_positions=m.staff, rooms=m.rooms), fh, indent=1, ensure_ascii=False)
         with open(glb, 'rb') as fh:
             data[m.name] = dict(site=SITE, glb=base64.b64encode(fh.read()).decode(), stations=[[*to_gl(s[:3]), s[3], s[4]] for s in m.stations])
         print(f'layout {m.name}: {cnt} nodes, {os.path.getsize(glb) / 1024:.0f} kB, {len(m.items)} schedule items')
