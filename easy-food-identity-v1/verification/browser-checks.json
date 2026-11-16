@@ -1,0 +1,224 @@
+[
+  {
+    "file": "docs/brand-guide.html",
+    "title": "Easy Food — Brand Guidelines",
+    "documentWidth": 1400,
+    "viewportWidth": 1400,
+    "brokenImages": [],
+    "localLinks": [
+      "../assets/logos/logo-stacked-cream.svg",
+      "../assets/logos/logo-stacked-cobalt.svg",
+      "../assets/logos/logo-stacked-cream.svg",
+      "../assets/logos/logo-stacked-black.svg",
+      "../assets/logos/logo-stacked-cobalt.svg",
+      "../assets/icons/easy-rice.svg",
+      "../assets/icons/easy-wrap.svg",
+      "../assets/icons/easy-salad.svg",
+      "../assets/logos/logo-stacked-cream.svg",
+      "../assets/logos/logo-stacked-cream.svg",
+      "../assets/logos/symbol-cream.svg",
+      "../assets/logos/logo-stacked-cobalt.svg",
+      "../generated/easy-food-brandboard.png",
+      "../generated/easy-food-menu-hero.png"
+    ],
+    "fonts": [
+      {
+        "family": "Manrope",
+        "status": "loaded"
+      },
+      {
+        "family": "Cairo",
+        "status": "loaded"
+      }
+    ],
+    "sections": [
+      {
+        "index": 0,
+        "width": 1123,
+        "scrollWidth": 1123,
+        "height": 794,
+        "scrollHeight": 794
+      },
+      {
+        "index": 1,
+        "width": 1123,
+        "scrollWidth": 1123,
+        "height": 794,
+        "scrollHeight": 794
+      },
+      {
+        "index": 2,
+        "width": 1123,
+        "scrollWidth": 1123,
+        "height": 794,
+        "scrollHeight": 794
+      },
+      {
+        "index": 3,
+        "width": 1123,
+        "scrollWidth": 1123,
+        "height": 794,
+        "scrollHeight": 794
+      },
+      {
+        "index": 4,
+        "width": 1123,
+        "scrollWidth": 1123,
+        "height": 794,
+        "scrollHeight": 794
+      },
+      {
+        "index": 5,
+        "width": 1123,
+        "scrollWidth": 1123,
+        "height": 794,
+        "scrollHeight": 794
+      },
+      {
+        "index": 6,
+        "width": 1123,
+        "scrollWidth": 1123,
+        "height": 794,
+        "scrollHeight": 794
+      },
+      {
+        "index": 7,
+        "width": 1123,
+        "scrollWidth": 1123,
+        "height": 794,
+        "scrollHeight": 794
+      },
+      {
+        "index": 8,
+        "width": 1123,
+        "scrollWidth": 1123,
+        "height": 794,
+        "scrollHeight": 794
+      },
+      {
+        "index": 9,
+        "width": 1123,
+        "scrollWidth": 1123,
+        "height": 794,
+        "scrollHeight": 794
+      }
+    ],
+    "brokenLinks": [],
+    "errors": []
+  },
+  {
+    "file": "templates/menu.html",
+    "title": "Easy Food — Editable Menu",
+    "documentWidth": 1200,
+    "viewportWidth": 1200,
+    "brokenImages": [],
+    "localLinks": [
+      "../assets/logos/logo-horizontal-cobalt.svg",
+      "../assets/icons/easy-rice.svg",
+      "../assets/icons/easy-wrap.svg",
+      "../assets/icons/easy-salad.svg"
+    ],
+    "fonts": [
+      {
+        "family": "Manrope",
+        "status": "loaded"
+      },
+      {
+        "family": "Cairo",
+        "status": "loaded"
+      }
+    ],
+    "sections": [],
+    "brokenLinks": [],
+    "errors": []
+  },
+  {
+    "file": "templates/social-square.html",
+    "title": "Easy Food — Editable Social Post",
+    "documentWidth": 1080,
+    "viewportWidth": 1080,
+    "brokenImages": [],
+    "localLinks": [
+      "../assets/logos/logo-stacked-cream.svg"
+    ],
+    "fonts": [
+      {
+        "family": "Manrope",
+        "status": "loaded"
+      },
+      {
+        "family": "Cairo",
+        "status": "loaded"
+      }
+    ],
+    "sections": [],
+    "brokenLinks": [],
+    "errors": []
+  },
+  {
+    "file": "templates/social-story.html",
+    "title": "Easy Food — Editable Story",
+    "documentWidth": 1080,
+    "viewportWidth": 1080,
+    "brokenImages": [],
+    "localLinks": [
+      "../assets/logos/logo-stacked-cobalt.svg"
+    ],
+    "fonts": [
+      {
+        "family": "Manrope",
+        "status": "loaded"
+      },
+      {
+        "family": "Cairo",
+        "status": "loaded"
+      }
+    ],
+    "sections": [],
+    "brokenLinks": [],
+    "errors": []
+  },
+  {
+    "file": "index.html",
+    "title": "Easy Food — الهوية البصرية",
+    "documentWidth": 1440,
+    "viewportWidth": 1440,
+    "brokenImages": [],
+    "localLinks": [
+      "assets/logos/logo-horizontal-cobalt.svg",
+      "docs/brand-guide.pdf",
+      "docs/brand-guide.html",
+      "generated/easy-food-brandboard.png",
+      "generated/easy-food-brandboard.png",
+      "assets/logos/logo-horizontal-cobalt.svg",
+      "assets/logos/logo-horizontal-cobalt.svg",
+      "assets/logos/logo-horizontal-cobalt.png",
+      "assets/logos/symbol-cobalt.svg",
+      "assets/patterns/grain-pattern-cobalt.svg",
+      "templates/menu.html",
+      "templates/menu.pdf",
+      "assets/logos/symbol-cobalt.svg",
+      "templates/social-square.html",
+      "templates/social-story.html",
+      "generated/easy-food-menu-hero.png"
+    ],
+    "fonts": [
+      {
+        "family": "Cairo",
+        "status": "loaded"
+      },
+      {
+        "family": "Manrope",
+        "status": "loaded"
+      }
+    ],
+    "sections": [],
+    "mobile": {
+      "documentWidth": 390,
+      "viewportWidth": 390,
+      "brokenImages": 0
+    },
+    "brokenLinks": [],
+    "errors": []
+  }
+]

@@ -1,0 +1,18 @@
+# Local tooling and browser verification
+.claude/
+.playwright-cli/
+output/
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+
+# Credentials and machine-specific configuration
+.env
+.env.*
+*.pem
+*.key
+
+# Original site-survey photos remain local; project drawings are published.
+refrence/

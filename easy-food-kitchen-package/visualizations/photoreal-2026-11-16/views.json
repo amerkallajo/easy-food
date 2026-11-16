@@ -1,0 +1,68 @@
+[
+  {
+    "file": "05-A-exterior-signage-order-collect.png",
+    "title": "Shopfront · الواجهة",
+    "layout": "A",
+    "caption": "Order and collect windows, staff entrance and bilingual fascia."
+  },
+  {
+    "file": "03-A-interior-from-door.png",
+    "title": "From the entrance · من الباب",
+    "layout": "A",
+    "caption": "The narrow aisle, chillers, preparation counter and rear toilet partition."
+  },
+  {
+    "file": "04-A-interior-from-back.png",
+    "title": "Looking towards service · باتجاه الواجهة",
+    "layout": "A",
+    "caption": "The reverse interior angle from the rear preparation area."
+  },
+  {
+    "file": "01-A-cutaway-3d.png",
+    "title": "Overall cutaway · المقطع العام",
+    "layout": "A",
+    "caption": "An overview with selected walls removed to show the arrangement."
+  },
+  {
+    "file": "02-A-top-down-cutaway.png",
+    "title": "Overhead · المسقط العلوي",
+    "layout": "A",
+    "caption": "The complete footprint; the street is on the right of this view."
+  },
+  {
+    "file": "06-A-staff-and-food-flow.png",
+    "title": "Staff stations · مواقع العمل",
+    "layout": "A",
+    "caption": "Three working positions shown in an architectural cutaway."
+  },
+  {
+    "file": "09-A-equipment-detail.png",
+    "title": "Counter details · تفاصيل التجهيزات",
+    "layout": "A",
+    "caption": "Saladette, preparation surfaces, hot hold and cooking equipment."
+  },
+  {
+    "file": "10-A-hood-filters-detail.png",
+    "title": "Hood details · تفاصيل الشفاط",
+    "layout": "A",
+    "caption": "Brushed steel, removable baffle filters, rolled lip and duct."
+  },
+  {
+    "file": "11-A-retained-wc-accordion.png",
+    "title": "Retained toilet · الحمّام المحفوظ",
+    "layout": "A",
+    "caption": "Upper partitions removed for visibility; accordion door and provisional toilet envelope."
+  },
+  {
+    "file": "07-B-cutaway-3d.png",
+    "title": "Alternative B · البديل B",
+    "layout": "B",
+    "caption": "Front cooking and a single service hatch; an alternative to the selected layout."
+  },
+  {
+    "file": "08-B-staff-and-food-flow.png",
+    "title": "Alternative B staff · مواقع العمل في B",
+    "layout": "B",
+    "caption": "Staff positions in the alternative arrangement."
+  }
+]

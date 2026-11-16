@@ -1,0 +1,101 @@
+[
+  {
+    "file": "05-A-exterior-signage-order-collect.png",
+    "layout": "A",
+    "width": 1587,
+    "height": 991,
+    "bytes": 2833889,
+    "sha256": "dc613d05a665a1bdb16279016e94c112e9f704a4eaecd2a41cbfd9cc25954e5b",
+    "reference_sha256": "16101375a0d9ccd96d35d08657dc89086dbff9a79ed58775eb5bd2596ad71f60"
+  },
+  {
+    "file": "03-A-interior-from-door.png",
+    "layout": "A",
+    "width": 1587,
+    "height": 991,
+    "bytes": 2154852,
+    "sha256": "abba55064bf7506bb2611acf16d1efbe6491c37d10a3a98247da12312c2371fa",
+    "reference_sha256": "583fda90b26b2fd9fb4aba8f442a4378ef2a8bcd9fcc1c5add84377b61ab751d"
+  },
+  {
+    "file": "04-A-interior-from-back.png",
+    "layout": "A",
+    "width": 1587,
+    "height": 991,
+    "bytes": 2147483,
+    "sha256": "e899b8cacd41297d40c9828ff70efaae2982c274bf120a9107873c9c36835637",
+    "reference_sha256": "b6633759cd0f18d72efdc1a659a67a1dee626ca0065b90caf87f8a0f63babad8"
+  },
+  {
+    "file": "01-A-cutaway-3d.png",
+    "layout": "A",
+    "width": 1587,
+    "height": 991,
+    "bytes": 2054069,
+    "sha256": "1f6b2bd2fa3773254972ba199b2ea6d3fcdb661ceaca1b158c190de251e5d34e",
+    "reference_sha256": "675458da39863abea4364bd8e020929a1ff16fac33bf80c23d0b326ba8f1495f"
+  },
+  {
+    "file": "02-A-top-down-cutaway.png",
+    "layout": "A",
+    "width": 1585,
+    "height": 992,
+    "bytes": 2280474,
+    "sha256": "bc7ebc8f10f8f7f92fa2f313abf91231aba5bcaf13016f3da4d7955859519e3e",
+    "reference_sha256": "3efa51c9612474e9aa01ff2d6f8e75c29c4f44e4584830848dc20d6d2a330955"
+  },
+  {
+    "file": "06-A-staff-and-food-flow.png",
+    "layout": "A",
+    "width": 1586,
+    "height": 992,
+    "bytes": 2182419,
+    "sha256": "25c3fe5405bba087564e6d0ed870c907be21448d7a5530bdcb480b93bc891e5f",
+    "reference_sha256": "0589b55801e22fc6e4cf22362e102e44c7243cbeaac6fc9836181bcd0723e9f9"
+  },
+  {
+    "file": "09-A-equipment-detail.png",
+    "layout": "A",
+    "width": 1586,
+    "height": 992,
+    "bytes": 2493488,
+    "sha256": "cf46e2b024a48586b57362af8b8d3081960b520fb7d945d633f7887786a256d6",
+    "reference_sha256": "18c596148bf8c5bc3b182c7dcdf3e46becf6c0ec29f4e73b9c83ef5630d3d898"
+  },
+  {
+    "file": "10-A-hood-filters-detail.png",
+    "layout": "A",
+    "width": 1587,
+    "height": 991,
+    "bytes": 2181452,
+    "sha256": "b8fb92798b9e3cb178145def842146741a3ad6dc5ec0cf8a962455ef3ad94a63",
+    "reference_sha256": "975fc9cb35dccab3cd5dab7814d3ddaa6590bfb4148af0dcd39254c01f77244f"
+  },
+  {
+    "file": "11-A-retained-wc-accordion.png",
+    "layout": "A",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 2569329,
+    "sha256": "08ce5ff2b841043f5f9d9a9de3e4be0484b6bf29baddeecec321f2dd437a5d7d",
+    "reference_sha256": "60582ccc367fd7460a0f7c2d08df2bcf63b57c017d2cd69699a674f3c8195022"
+  },
+  {
+    "file": "07-B-cutaway-3d.png",
+    "layout": "B",
+    "width": 1586,
+    "height": 992,
+    "bytes": 2132497,
+    "sha256": "9e3f6397dffc497dedb9a929daf3523ec81264f26addc367036f6723ffea1bf8",
+    "reference_sha256": "711fe30eae4d4c1d6a9c7716f3127b1db7f034927dd36c239a119ad70224e6b4"
+  },
+  {
+    "file": "08-B-staff-and-food-flow.png",
+    "layout": "B",
+    "width": 1585,
+    "height": 992,
+    "bytes": 2109860,
+    "sha256": "c03b21d07425fba88850a2290a0b771324b4c59ee64b8ac69c2653bdf4bd14ce",
+    "reference_sha256": "69ac7dcdc22114252a69add77f031ff28b4e24ea7952974fc0bea07988234bf8"
+  }
+]

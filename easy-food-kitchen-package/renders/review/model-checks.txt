@@ -1,0 +1,10 @@
+W=2.70 A: 112,466 triangles; geometry, mesh footprints and layout clearances OK
+W=2.70 B: 105,876 triangles; geometry, mesh footprints and layout clearances OK
+W=2.79 A: 112,466 triangles; geometry, mesh footprints and layout clearances OK
+W=2.79 B: 105,876 triangles; geometry, mesh footprints and layout clearances OK
+W=2.95 A: 112,466 triangles; geometry, mesh footprints and layout clearances OK
+W=2.95 B: 105,876 triangles; geometry, mesh footprints and layout clearances OK
+W=2.45: correctly rejected; WC access needs redesign
+W=2.60: correctly rejected; WC access needs redesign
+A: GLB/PBR, Arabic labels, buffer ranges and OBJ normal/face parity OK
+B: GLB/PBR, Arabic labels, buffer ranges and OBJ normal/face parity OK

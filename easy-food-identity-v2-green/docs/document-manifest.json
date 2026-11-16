@@ -1,0 +1,44 @@
+{
+  "brand": "Easy Food",
+  "version": "2-green",
+  "primary_slogan": "Eat smart. Live easy.",
+  "campaign_line": "Good food. On repeat.",
+  "palette": {
+    "Forest": "#146B45",
+    "Lime": "#DDF45B",
+    "Cream": "#FFF8EA",
+    "Ink": "#17251C",
+    "White": "#FFFFFF"
+  },
+  "contrast": {
+    "Cream on Forest": 6.172,
+    "White on Forest": 6.524,
+    "Ink on Lime": 13.026,
+    "Ink on Cream": 15.076,
+    "Forest on Lime": 5.333
+  },
+  "templates": [
+    {
+      "file": "menu.html",
+      "canvas": [
+        900,
+        1273
+      ],
+      "print": "A3 portrait"
+    },
+    {
+      "file": "social-square.html",
+      "canvas": [
+        1080,
+        1080
+      ]
+    },
+    {
+      "file": "social-story.html",
+      "canvas": [
+        1080,
+        1920
+      ]
+    }
+  ]
+}

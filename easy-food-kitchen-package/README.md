@@ -78,7 +78,7 @@ Width remains controlled by `SITE['W']`; the right-hand equipment line and right
 - **Supplied by you:** depth 5.06 m, width 2.79 m (confirmed 16 Nov 2026; replaces the earlier 2.60 m). Both are phone measurements; tape-check before fabrication.
 - **Estimated from photographs:** shopfront opening, door and glazing widths, step height, manhole position.
 - **Assumed:** ceiling height 3.00 m, wall thickness, sidewalk depth, every water, drain, power and gas point, the exhaust route, and the exact toilet envelope / partition / door dimensions. The toilet location inside the rear-left corner is now owner-confirmed.
-- The 3D model is geometry built from those numbers. It is a concept model, not a survey. Finishes and signage are proposals. No AI-generated images are used.
+- The 3D model is geometry built from those numbers. It is a concept model, not a survey. Finishes and signage are proposals. The dimensioned plans and images in `renders/ar/` and `renders/en/` are direct model outputs. The separate `visualizations/photoreal-2026-11-16/` gallery contains AI-generated concept images based on those model views.
 - The layouts are concept layouts, not approved construction, ventilation, electrical, gas or food-safety drawings.
 
 ## Two answers that would change the design
@@ -89,3 +89,7 @@ Width remains controlled by `SITE['W']`; the right-hand equipment line and right
 ## Retained WC revision
 
 The model now reserves an **assumed outer 1.20 × 1.60 m** at the rear left, with an **accordion door** as requested. E09 is shortened and moved to the rear right; E10 moves forward; E12/E13 become narrower upright units and E11 becomes high closed storage. The rear access strip is **0.89 m** at the current 2.79 m width. Floor-equipment footprints and access are checked against the WC reservation. See [WC revision](docs/08-retained-wc-revision.md).
+
+## Photorealistic concept gallery
+
+[Open the eleven-view image gallery](visualizations/photoreal-2026-11-16/index.html). Full-resolution generated PNGs, matching model references and exact prompts are included. Selected layout A and alternative B are identified separately. Finishes, small details, people and generated lettering are illustrative; the toilet envelope and ceiling height remain assumed.
