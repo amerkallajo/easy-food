@@ -1,0 +1,45 @@
+{
+  "brand": "Easy Food",
+  "version": 1,
+  "primarySlogan": "Eat smart. Live easy.",
+  "campaignLine": "Good food. On repeat.",
+  "arabicLine": "أكلك الصحي، بكل بساطة.",
+  "palette": {
+    "cobalt": "#2448F5",
+    "lime": "#DDF45B",
+    "cream": "#FFF8EA",
+    "ink": "#17251C",
+    "white": "#FFFFFF"
+  },
+  "menu": [
+    "Easy Rice",
+    "Easy Wrap",
+    "Easy Salad"
+  ],
+  "proteins": [
+    "Chicken",
+    "Beef"
+  ],
+  "generationTool": "Built-in image_gen.imagegen (no CLI/API fallback)",
+  "assets": [
+    {
+      "file": "generated/easy-food-menu-hero.png",
+      "type": "AI-generated conceptual food photograph",
+      "prompt": "Use case: ads-marketing. Asset type: restaurant brand campaign food photograph, wide landscape 3:2 composition. Create an exceptionally appetizing photorealistic editorial studio food photograph for the new restaurant Easy Food, an accessible everyday healthy-food brand. THREE actual menu formats only, beautifully composed together: a cream paper rice bowl with long grain rice, juicy grilled chicken pieces with authentic char marks, fresh tomato cucumber lettuce and a modest yogurt-herb sauce; a toasted wrap cut diagonally into two halves revealing grilled chicken and crisp vegetables; and a fresh salad bowl with grilled beef strips, lettuce tomato cucumber and purple cabbage, lemon-herb dressing. Fresh real food, generous realistic portions, natural irregular ingredients, no fake plastic shine, restrained sauce. Use a solid vivid cobalt-blue #2448F5 tabletop, warm cream #FFF8EA backdrop, one small lime #DDF45B napkin. Simple unbranded cream food-safe containers with NO text and NO logos so exact artwork can be applied later. Soft directional daylight, gentle tactile paper texture, premium commercial photography with a human approachable feeling. Food is the hero, crisp natural detail and warm inviting color. Leave a little clean cream space above for future copy. NO lettering, NO watermark, NO cutlery, NO people, NO extra menu categories, NO fries or soda. This is a conceptual food photograph, not a record of actual restaurant products."
+    },
+    {
+      "file": "generated/easy-food-brandboard.png",
+      "type": "AI-generated identity mockup board",
+      "references": [
+        "assets/logo-reference.png",
+        "generated/easy-food-menu-hero.png"
+      ],
+      "prompt": "Use case: logo-brand and product-mockup. Asset type: complete restaurant visual identity presentation, a polished agency brandboard. Primary request: create the FULL visual identity presentation for EASY FOOD, an approachable contemporary everyday healthy-food restaurant serving ONLY Easy Rice, Easy Wrap and Easy Salad, with chicken or beef. Generate a single exceptionally designed high-resolution LANDSCAPE 3:2 editorial presentation board with a restrained Swiss grid, generous margins, cream gutters and tactile photorealistic applications; not a random collage. Input image 1 is the CANONICAL exact Easy Food logo reference: preserve its lowercase heavy geometric easy wordmark, smaller spaced FOOD underneath, and THREE separate parallel rounded diagonal grain strokes to its left; do not redesign it. Image 2 is the food photography/style reference for the three actual formats. Reuse the same recognizable logo proportions on every application. Palette: vivid cobalt #2448F5, electric lime #DDF45B, warm cream #FFF8EA, dark ink #17251C. Cobalt and cream dominate, lime is a bold accent. Style is youthful, warm, intelligent, delicious, accessible, confidently minimal, real restaurant branding ready for a professional portfolio. Build around 8-9 clean purposeful panels of different sizes: (1) large hero logo on cream with exact slogan 'Eat smart. Live easy.'; (2) premium central studio packaging still life of a branded rice bowl with lid, a cream wrap sleeve, a salad bowl, a cobalt takeaway paper bag and round lime seal stickers, all consistently printed with the canonical logo and the three-grain pattern; (3) believable compact street restaurant facade, cobalt fascia with cream easy FOOD logo and lime projecting sign, welcoming window and small counter, no invented address; (4) menu panel showing EXACTLY 'Easy Rice', 'Easy Wrap', 'Easy Salad' and 'Chicken / Beef', no numeric prices, no invented products; (5) five clear color swatches labeled '#2448F5', '#DDF45B', '#FFF8EA', '#17251C', '#FFFFFF'; (6) friendly Manrope-style typography sample 'Aa' with clean geometric English letters and one large correctly spelled Arabic line 'أكلك الصحي، بكل بساطة.'; (7) three social post layouts as coherent campaign examples with actual appetizing food photos and exact short copy 'Good food. On repeat.'; (8) cobalt staff T-shirt and cream apron with exact logo plus the diagonal grain pattern; (9) small mark/pattern and reversed logo study. Food must be appetizing grilled chicken rice, chicken wrap, beef salad from reference, realistic portions, fresh crisp vegetables and modest sauce. Soft natural studio light, tactile paper, beautiful shadows, consistent believable print scale. Repeating pattern uses the exact THREE rounded slash grains, never four. Strong hierarchy: logo and packaging first, supporting details second. All panels align perfectly with consistent clean margins. Exact text only as requested, no random paragraphs, no certification icons, no fake nutrition data, no QR codes, no fabricated contact details, no grand opening date, no gym/weight-loss imagery, no leaf/chef-hat logo, no watermark. Flat board overall viewed straight-on, with photographed objects within panels. Make the presentation visually rich but not cluttered. This is a concept identity and illustrative mockup presentation."
+    }
+  ],
+  "productionNotes": [
+    "Canonical logo artwork is the outlined SVG files under assets/logos; AI mockups may vary slightly.",
+    "Package mockups are not dielines or food-contact material specifications.",
+    "No recipe-derived nutrition values, fixed prices, contact details or opening dates were invented."
+  ]
+}

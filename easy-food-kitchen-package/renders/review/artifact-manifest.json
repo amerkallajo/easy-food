@@ -1,0 +1,138 @@
+{
+  "renders/ar/01-A-cutaway-3d.png": {
+    "bytes": 599218,
+    "sha256": "fdaa23ff1f8d76687fd3c09cf844a3b13e763f5ccca61c7ff4fe7e6368321546"
+  },
+  "renders/ar/02-A-top-down-cutaway.png": {
+    "bytes": 503231,
+    "sha256": "5d108d3f980add247c03dbd293f89ad6ccabe8f5cbd78ecd7e51d6791b42af50"
+  },
+  "renders/ar/03-A-interior-from-door.png": {
+    "bytes": 1096028,
+    "sha256": "8e0264fe5f4259879eb3b51f0a947abbb5bf5c9d98da9ab3046da2b372679eba"
+  },
+  "renders/ar/04-A-interior-from-back.png": {
+    "bytes": 981976,
+    "sha256": "e6e2a7f7bc8fac24ddedd06082e47afcaa6bdca0c8e0c55056c6045b3c0dafa0"
+  },
+  "renders/ar/05-A-exterior-signage-order-collect.png": {
+    "bytes": 1139825,
+    "sha256": "a2ef7981d37084f1c6013c891972a7343d984769eaea241470090a975b936c8b"
+  },
+  "renders/ar/06-A-staff-and-food-flow.png": {
+    "bytes": 613048,
+    "sha256": "42548679eeb7d357e21d536e2217d5d688df12c2e21514174bec8e84a7ba5af8"
+  },
+  "renders/ar/07-B-cutaway-3d.png": {
+    "bytes": 614192,
+    "sha256": "495a90adb706c7405bbbcfde9ac99850bc55f76bad8c658202722a3cdca5b399"
+  },
+  "renders/ar/08-B-staff-and-food-flow.png": {
+    "bytes": 625580,
+    "sha256": "dcc478ab07e7a830b5cac91c335bcfc3fc7f65c85da720f96907b2f2ca060273"
+  },
+  "renders/ar/09-A-equipment-detail.png": {
+    "bytes": 1086448,
+    "sha256": "c12836cc7a8d414a490b3d782814810a39ca04c23cde8c8a71ba7cf9fe316310"
+  },
+  "renders/ar/10-A-hood-filters-detail.png": {
+    "bytes": 906878,
+    "sha256": "ea96bd7547edb688c683cc0e30853e86526a9ee40a865c7d555fa95c1d939471"
+  },
+  "renders/ar/11-A-retained-wc-accordion.png": {
+    "bytes": 957939,
+    "sha256": "90e0de3958f5151c60626ed4317350745a2d046ec467fa9fa3dab5801458ea6b"
+  },
+  "renders/en/01-A-cutaway-3d.png": {
+    "bytes": 603367,
+    "sha256": "675458da39863abea4364bd8e020929a1ff16fac33bf80c23d0b326ba8f1495f"
+  },
+  "renders/en/02-A-top-down-cutaway.png": {
+    "bytes": 505011,
+    "sha256": "3efa51c9612474e9aa01ff2d6f8e75c29c4f44e4584830848dc20d6d2a330955"
+  },
+  "renders/en/03-A-interior-from-door.png": {
+    "bytes": 1098898,
+    "sha256": "583fda90b26b2fd9fb4aba8f442a4378ef2a8bcd9fcc1c5add84377b61ab751d"
+  },
+  "renders/en/04-A-interior-from-back.png": {
+    "bytes": 984351,
+    "sha256": "b6633759cd0f18d72efdc1a659a67a1dee626ca0065b90caf87f8a0f63babad8"
+  },
+  "renders/en/05-A-exterior-signage-order-collect.png": {
+    "bytes": 1140811,
+    "sha256": "16101375a0d9ccd96d35d08657dc89086dbff9a79ed58775eb5bd2596ad71f60"
+  },
+  "renders/en/06-A-staff-and-food-flow.png": {
+    "bytes": 619019,
+    "sha256": "0589b55801e22fc6e4cf22362e102e44c7243cbeaac6fc9836181bcd0723e9f9"
+  },
+  "renders/en/07-B-cutaway-3d.png": {
+    "bytes": 616924,
+    "sha256": "711fe30eae4d4c1d6a9c7716f3127b1db7f034927dd36c239a119ad70224e6b4"
+  },
+  "renders/en/08-B-staff-and-food-flow.png": {
+    "bytes": 630282,
+    "sha256": "69ac7dcdc22114252a69add77f031ff28b4e24ea7952974fc0bea07988234bf8"
+  },
+  "renders/en/09-A-equipment-detail.png": {
+    "bytes": 1088500,
+    "sha256": "18c596148bf8c5bc3b182c7dcdf3e46becf6c0ec29f4e73b9c83ef5630d3d898"
+  },
+  "renders/en/10-A-hood-filters-detail.png": {
+    "bytes": 908754,
+    "sha256": "975fc9cb35dccab3cd5dab7814d3ddaa6590bfb4148af0dcd39254c01f77244f"
+  },
+  "renders/en/11-A-retained-wc-accordion.png": {
+    "bytes": 960704,
+    "sha256": "60582ccc367fd7460a0f7c2d08df2bcf63b57c017d2cd69699a674f3c8195022"
+  },
+  "model/easy-food-kitchen-A.glb": {
+    "bytes": 8730960,
+    "sha256": "3fb1e67b991d79d4a9e4863aae50995f6de6a964760c232530b28ae6aebc3246"
+  },
+  "model/easy-food-kitchen-A.mtl": {
+    "bytes": 2873,
+    "sha256": "2d9a94f0b9018c128966bae5760410dd590b99ef9fac50a6f81c7956492aa1b9"
+  },
+  "model/easy-food-kitchen-A.obj": {
+    "bytes": 23157404,
+    "sha256": "dfc40838ef635b7b6053b593434fbd49eb3fb5d0e6fa699ed96e4cc432a7fac2"
+  },
+  "model/easy-food-kitchen-B.glb": {
+    "bytes": 8213572,
+    "sha256": "f22e020e4e84526296613b620c0373b2a67ca9b53cab8ae055ab0ac949bcc286"
+  },
+  "model/easy-food-kitchen-B.mtl": {
+    "bytes": 2873,
+    "sha256": "2d9a94f0b9018c128966bae5760410dd590b99ef9fac50a6f81c7956492aa1b9"
+  },
+  "model/easy-food-kitchen-B.obj": {
+    "bytes": 21758090,
+    "sha256": "5dcd567416963033109027ed187049c5705a2355ecfc69bad4997b731e72f902"
+  },
+  "model/viewer/viewer.html": {
+    "bytes": 23453433,
+    "sha256": "d2a77d79b36f2c115082c953229924b29b585c731ee84b32c21d3724b4a2ea5c"
+  },
+  "plans/flow-A.png": {
+    "bytes": 619019,
+    "sha256": "0589b55801e22fc6e4cf22362e102e44c7243cbeaac6fc9836181bcd0723e9f9"
+  },
+  "plans/layout-A.png": {
+    "bytes": 389211,
+    "sha256": "6c12dc53bd82122310c79075b86efdc16186d71a4dfdfb11198861540cdd989c"
+  },
+  "plans/layout-A.svg": {
+    "bytes": 21019,
+    "sha256": "99aecad76f86d96650d526e5248a54dd53f32e6e9698c56881629b15af5f7a92"
+  },
+  "plans/layout-B.png": {
+    "bytes": 340573,
+    "sha256": "4f6ef27638ac0f00476cecb9f7654d935297d7f70907d9a581385848ca1d2869"
+  },
+  "plans/layout-B.svg": {
+    "bytes": 17350,
+    "sha256": "92dba948727479fa29c6067288c151e658c177ce6ef9c8be3f27ebf01ee449c8"
+  }
+}

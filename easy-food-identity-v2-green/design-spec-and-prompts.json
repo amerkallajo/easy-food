@@ -1,0 +1,28 @@
+{
+  "brand": "Easy Food",
+  "version": "2-green",
+  "palette": {
+    "forest": "#146B45",
+    "lime": "#DDF45B",
+    "cream": "#FFF8EA",
+    "ink": "#17251C",
+    "white": "#FFFFFF"
+  },
+  "primarySlogan": "Eat smart. Live easy.",
+  "generationTool": "Built-in image_gen.imagegen",
+  "assets": [
+    {
+      "file": "generated/easy-food-brandboard.png",
+      "type": "AI-generated conceptual mockup board",
+      "prompt": "Edit target: supplied Easy Food brand identity board. Create a refreshed GREEN identity edition. Replace ALL cobalt/royal blue brand colors throughout the entire board with rich forest green #146B45. Keep bright lime #DDF45B, warm cream #FFF8EA, ink #17251C and white as secondary colors. Forest green must dominate the bag, storefront fascia, signage, tabletop, staff shirt, logos and campaign panels; NO BLUE anywhere in the branding. Keep the exact easy FOOD wordmark and THREE rounded diagonal grains logo recognizable and consistent. Keep all three food formats: Easy Rice, Easy Wrap, Easy Salad, Chicken / Beef. Preserve the beautiful grid but refresh the presentation into a natural warm confident contemporary healthy restaurant identity, matte forest green packaging with cream logo and lime grain accents, warm wood and lush but restrained greenery on facade, premium yet affordable. Keep photorealistic appetizing foods, clear geometry, textile and paper textures. Exact slogan 'Eat smart. Live easy.' and campaign 'Good food. On repeat.'; Arabic 'أكلك الصحي، بكل بساطة.' Correct palette chips to #146B45, #DDF45B, #FFF8EA, #17251C, #FFFFFF. Other text short and accurate; do not add prices, certifications, QR or contact details. High resolution landscape 3:2 complete brandboard with logo, packaging, storefront, menu, color palette, typography, staff uniform and social layouts. Treat this as a coherent new green color direction, never teal or blue-green."
+    },
+    {
+      "file": "generated/easy-food-menu-hero.png",
+      "type": "AI-edited conceptual food photograph",
+      "prompt": "Edit only the blue tabletop in the supplied restaurant food photograph to rich forest green #146B45, naturally matching the existing lighting and shadows. Keep every food ingredient, rice bowl, beef salad bowl, wrap halves, cream containers, cream backdrop, lime napkin and composition unchanged. Appetizing photorealistic commercial food photo. No blue, no text, no logos. Preserve landscape 3:2 composition."
+    }
+  ],
+  "notes": [
+    "SVG logos are canonical. Packaging and storefront imagery are illustrative mockups, not production drawings."
+  ]
+}

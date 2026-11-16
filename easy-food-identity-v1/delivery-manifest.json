@@ -1,0 +1,335 @@
+{
+  "brand": "Easy Food",
+  "version": "v1",
+  "fileCountExcludingManifest": 61,
+  "files": [
+    {
+      "path": "assets/build_assets.py",
+      "bytes": 8273,
+      "sha256": "fdb5bf9d6de18d7af60c31b33b648dfbadc9531374046a01f8fa738bb88e4870"
+    },
+    {
+      "path": "assets/design-tokens.css",
+      "bytes": 434,
+      "sha256": "dc5ee4347b4a4371554b2b03028c019b0e8fe9f26fa0af486599dd05d6464ea4"
+    },
+    {
+      "path": "assets/design-tokens.json",
+      "bytes": 326,
+      "sha256": "408aadc2a426bf66804fbdc5520a75b16363ea9b01c836545ca19c3906a8bf76"
+    },
+    {
+      "path": "assets/FONT-SOURCES.md",
+      "bytes": 763,
+      "sha256": "ed9b0e0d239ae6f93fa2675da3d47f31c80af4bcc1a12eaa6bc63addbaa23dc6"
+    },
+    {
+      "path": "assets/fonts/Cairo-OFL.txt",
+      "bytes": 4473,
+      "sha256": "a4554e1799d42e1405924b61eb0e0722ae1623b1f1f07f995348f96c496362a9"
+    },
+    {
+      "path": "assets/fonts/Cairo-Variable.ttf",
+      "bytes": 599548,
+      "sha256": "667c987182391c91f4e57a2f455b1794fb5e3ee6ca4ef3383e86bb690fa9c964"
+    },
+    {
+      "path": "assets/fonts/Manrope-OFL.txt",
+      "bytes": 4387,
+      "sha256": "58172e0c0fac2cda8a37b348164bb55e44b0e69051e557e92b1d3f6910141f7b"
+    },
+    {
+      "path": "assets/fonts/Manrope-Variable.ttf",
+      "bytes": 164700,
+      "sha256": "3ae11c49db0455a3cc33e37d380f20fdb8c7f8b41dc07625c177e3d87a9d6ae6"
+    },
+    {
+      "path": "assets/icons/easy-rice.svg",
+      "bytes": 396,
+      "sha256": "fd77ae08e1083a18f5956534305f466fb58bc724853a1a86b56c1e42e22c8c9a"
+    },
+    {
+      "path": "assets/icons/easy-salad.svg",
+      "bytes": 462,
+      "sha256": "8f939045423d4359177eed6374db3e06cb11b7ef6a4764231c8de3f059356b7e"
+    },
+    {
+      "path": "assets/icons/easy-wrap.svg",
+      "bytes": 393,
+      "sha256": "c5cdec7458c7634b374b0b8fc0c88ea944fed910afeae586442c0c1adcd3bebd"
+    },
+    {
+      "path": "assets/logo-reference.png",
+      "bytes": 43939,
+      "sha256": "d59170713d1dc4062e573fbccdfe6cb378ff26f7c3e73b94dce46b081b95267c"
+    },
+    {
+      "path": "assets/logo-reference.svg",
+      "bytes": 11412,
+      "sha256": "56373749a46c42a5a73814066b4da26fbd2f3017aa5f565e3f1a59323f2fb9d7"
+    },
+    {
+      "path": "assets/logos/logo-horizontal-black.png",
+      "bytes": 18277,
+      "sha256": "bad480bc689dac682b1752069773925f00a2a0e0f69512f6496dbe9a18a7a5bc"
+    },
+    {
+      "path": "assets/logos/logo-horizontal-black.svg",
+      "bytes": 4201,
+      "sha256": "4d31bc8d9470915911d9379a01cbd4649a8fcd9b8715b661c6356437da2d7958"
+    },
+    {
+      "path": "assets/logos/logo-horizontal-cobalt.png",
+      "bytes": 26298,
+      "sha256": "e5f8926d569a51715811b1fa1e33946f26589517e815e0dec008df11eeeb9598"
+    },
+    {
+      "path": "assets/logos/logo-horizontal-cobalt.svg",
+      "bytes": 4201,
+      "sha256": "5eeb6b67e1dbac404956bf61323f11fdfc580140bdd2b63871e1375c51836aac"
+    },
+    {
+      "path": "assets/logos/logo-horizontal-cream.png",
+      "bytes": 24126,
+      "sha256": "77d39da4907d3a79d2f9f34a5bf02b245500b08de8586b5a9c56593f202f2c6e"
+    },
+    {
+      "path": "assets/logos/logo-horizontal-cream.svg",
+      "bytes": 4201,
+      "sha256": "014ad07817f1cf3bde3b74cb662e30ca16942480c8e25739c96638907c59b471"
+    },
+    {
+      "path": "assets/logos/logo-horizontal-white.png",
+      "bytes": 19932,
+      "sha256": "826edae74cecb67d4c20685166531258c2861fc9e39b90bbec7c14683e34690e"
+    },
+    {
+      "path": "assets/logos/logo-horizontal-white.svg",
+      "bytes": 4201,
+      "sha256": "c0dc99073c0a42e9ca4039626a177bca389c413713baa830083053698e00f6e0"
+    },
+    {
+      "path": "assets/logos/logo-primary-cream.pdf",
+      "bytes": 3627,
+      "sha256": "552e486879230c92923b0429dc9f5cfb7ac2d387e87369d6d1f47508cece258f"
+    },
+    {
+      "path": "assets/logos/logo-primary-cream.svg",
+      "bytes": 4249,
+      "sha256": "b92882213c44d8ff3def6605f93c79c7c945b017926263fb344a7770db3918c2"
+    },
+    {
+      "path": "assets/logos/logo-reversed-cobalt.pdf",
+      "bytes": 3627,
+      "sha256": "1373d857f132d2ed0cdf05190a3bc445d4c794ef0efd32ea339e45b9806e39df"
+    },
+    {
+      "path": "assets/logos/logo-reversed-cobalt.svg",
+      "bytes": 4249,
+      "sha256": "ace7a221228a50a4335d252fc23bdda275b3e6e783ee08dd4e5bc31292cc323a"
+    },
+    {
+      "path": "assets/logos/logo-slogan-cobalt.svg",
+      "bytes": 11312,
+      "sha256": "254fba665b9c6498f12fade2f393989b3ed1987064675ce96ca0706b94fb7780"
+    },
+    {
+      "path": "assets/logos/logo-stacked-black.png",
+      "bytes": 17587,
+      "sha256": "ac9f6da763b263a8371d27f3e5bb7452cf6f91cf9a61dded9f5aa519a2aa53ab"
+    },
+    {
+      "path": "assets/logos/logo-stacked-black.svg",
+      "bytes": 4197,
+      "sha256": "1f387c51f14d06317094b88b287d2fd9bb05613dfc8a61f54f8d4482a633c140"
+    },
+    {
+      "path": "assets/logos/logo-stacked-cobalt.png",
+      "bytes": 25167,
+      "sha256": "f9f83c10ee82d92841be5e69e1fa8160de1e15b9e7a914540c65461dacf09d8f"
+    },
+    {
+      "path": "assets/logos/logo-stacked-cobalt.svg",
+      "bytes": 4197,
+      "sha256": "94db2111516ef3276321b68227b4855a749cc45652067e363d3652c3ede9872f"
+    },
+    {
+      "path": "assets/logos/logo-stacked-cream.png",
+      "bytes": 22743,
+      "sha256": "4c6f74b10809b5248686d6b1656fb66000a0d515c22d655dbcbbfa370d94c5f7"
+    },
+    {
+      "path": "assets/logos/logo-stacked-cream.svg",
+      "bytes": 4197,
+      "sha256": "70f84e066da9a0ade5033f579b61e72f6f5abd9c79c87f656a859b2ac61deec7"
+    },
+    {
+      "path": "assets/logos/logo-stacked-white.png",
+      "bytes": 19006,
+      "sha256": "0f56cc26da69005ae3401bccc31616d838d8b6ab051ae9542e293a4c0445cf8b"
+    },
+    {
+      "path": "assets/logos/logo-stacked-white.svg",
+      "bytes": 4197,
+      "sha256": "b610facb2c6ae019a64c6b9c975b2c1db9b778fba42d6f1c588dfbd734cafece"
+    },
+    {
+      "path": "assets/logos/symbol-black.png",
+      "bytes": 7749,
+      "sha256": "6974d0f92592f12f39f21bd7380b0b068127187bd4a3a13515fb807c60a084f3"
+    },
+    {
+      "path": "assets/logos/symbol-black.svg",
+      "bytes": 319,
+      "sha256": "75c89f6a8506f586937eed35061f641e9d231f860c128a6276ceac328118dba1"
+    },
+    {
+      "path": "assets/logos/symbol-cobalt.png",
+      "bytes": 8131,
+      "sha256": "53cc1630be26398b12d62d6ffa999f5dd9e1ace9a28fd58b65b970b6968621c4"
+    },
+    {
+      "path": "assets/logos/symbol-cobalt.svg",
+      "bytes": 319,
+      "sha256": "058bdc37741ed076305e1dcb5f99075f5f44785fe3d1fcd225ac16b3522c9553"
+    },
+    {
+      "path": "assets/logos/symbol-cream.png",
+      "bytes": 7974,
+      "sha256": "0dba6233a6742f56fe035b49ed1cb29c9bea82ee993f9588edf0bd582c3f8ee0"
+    },
+    {
+      "path": "assets/logos/symbol-cream.svg",
+      "bytes": 319,
+      "sha256": "ea51e161b3e67b6c9a0bca65566ab1d84d8d8194dd6d937480d26d101a87e0b0"
+    },
+    {
+      "path": "assets/logos/symbol-white.png",
+      "bytes": 7662,
+      "sha256": "c4884c624f894701b1f67670d0627b58abdc39477f94dd0fb70e6f0d031537fa"
+    },
+    {
+      "path": "assets/logos/symbol-white.svg",
+      "bytes": 319,
+      "sha256": "b1e30e8ca7e8d9a778dbb00ca90f777c940945b0d4f48181db8b0febe0949793"
+    },
+    {
+      "path": "assets/patterns/grain-pattern-cobalt.svg",
+      "bytes": 518,
+      "sha256": "ad8edde581c97a3b5e13eb85c7d0c201febdda58aa5ae2e61f2e3fb6b26e6892"
+    },
+    {
+      "path": "assets/patterns/grain-pattern-cream.svg",
+      "bytes": 518,
+      "sha256": "cc74ca8879d7d36c46c930841f69a75fdece45f15acf9f648479e96625791f9c"
+    },
+    {
+      "path": "design-spec-and-prompts.json",
+      "bytes": 6055,
+      "sha256": "e5ea8bf265b99a3b8b227cbb497225e410dee63fff23610a9913eca85f73b26a"
+    },
+    {
+      "path": "docs/brand-guide.html",
+      "bytes": 27368,
+      "sha256": "34538695236b45f7a751453379a7342f51370be00f8f8a1cf2006873f59d97d9"
+    },
+    {
+      "path": "docs/brand-guide.pdf",
+      "bytes": 7303021,
+      "sha256": "90d3c3928464f0d81c7a0f3a5e99622851681c65c4d9701ab300979ef94ed516"
+    },
+    {
+      "path": "docs/build_documents.py",
+      "bytes": 37382,
+      "sha256": "01b59bee2bed3a7d4a993aa6d6180cb4c1a2c85ce7fe8dcb59bdfccb2bf0e780"
+    },
+    {
+      "path": "docs/document-manifest.json",
+      "bytes": 822,
+      "sha256": "8c440778e4308dea89962afcb254541c2cb8ba371322fe3b42984a1a2c4084d0"
+    },
+    {
+      "path": "docs/verify-layout.cjs",
+      "bytes": 1922,
+      "sha256": "df56d10c061bb798b030e9ee2e49ece56dd12d84af5012c942e46517eb70888a"
+    },
+    {
+      "path": "generated/easy-food-brandboard.png",
+      "bytes": 2330880,
+      "sha256": "6ce00e9a92522b78f44a74dee7e964deeabbc0d2ed416a2e8acd325d247c2b58"
+    },
+    {
+      "path": "generated/easy-food-menu-hero.png",
+      "bytes": 2468894,
+      "sha256": "b433b73df72e5fedf5680029fdd74428aa7956b198ced22823b3e16508401b3a"
+    },
+    {
+      "path": "index.html",
+      "bytes": 6216,
+      "sha256": "71759481ca62228cddee59b2c215f1f9e1cb3e6377c4cbdf2b6de29bbd2c9d04"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3153,
+      "sha256": "a574533682082bc0ddb960e63a7f9622886e592d98e55e666637fa238a1df0bd"
+    },
+    {
+      "path": "templates/menu.html",
+      "bytes": 4331,
+      "sha256": "810db045a426e14e0e2f9b396470b10b4e963089f523dcebdc52bb6b0dfacd7c"
+    },
+    {
+      "path": "templates/menu.pdf",
+      "bytes": 158206,
+      "sha256": "98dca2dad8036e8b59f1519fdf7387af8fb614365ca964dea72d034b845734bb"
+    },
+    {
+      "path": "templates/menu.png",
+      "bytes": 78679,
+      "sha256": "962bc1fcbd6b79298dac12ee0e208e0d74884ba940e3c8e1e9f2957632e93ec7"
+    },
+    {
+      "path": "templates/social-square.html",
+      "bytes": 2823,
+      "sha256": "984062a9681bd3b782cdf95cb67c9606f9809f7c4d482e368a1109b60c78e1a6"
+    },
+    {
+      "path": "templates/social-square.png",
+      "bytes": 62084,
+      "sha256": "ab06e5e7e0c4f170dfa72f67db052cef452d1c020e6ba57a1c60a41040e3588e"
+    },
+    {
+      "path": "templates/social-story.html",
+      "bytes": 3176,
+      "sha256": "a2c94a2ba1bc8b803a78b6a9887084c45126ab264d20ec9a51af75c96a599e2f"
+    },
+    {
+      "path": "templates/social-story.png",
+      "bytes": 85718,
+      "sha256": "196f815b8c3afe809b576c69d494e6aa35fc1e9a92271bcd2f7ddd629df1e656"
+    }
+  ],
+  "validation": {
+    "guidePdfPages": 10,
+    "menuPdfPages": 1,
+    "svgAssets": 21,
+    "brokenLocalReferences": 0,
+    "socialSquare": [
+      1080,
+      1080
+    ],
+    "socialStory": [
+      1080,
+      1920
+    ],
+    "menuPng": [
+      900,
+      1273
+    ],
+    "logos": [
+      "SVG outlined",
+      "PNG transparent",
+      "PDF vector"
+    ]
+  }
+}

@@ -1,0 +1,251 @@
+{
+  "brand": "Easy Food",
+  "version": "2-green",
+  "guidePages": 10,
+  "files": [
+    {
+      "path": "assets/build_assets.py",
+      "sha256": "d7fc057ad964e453b6ac3956859965db9f00290c17eec89ae71144174b6671bf"
+    },
+    {
+      "path": "assets/design-tokens.css",
+      "sha256": "9a509b3a10f4b7b78668562b218d66a5127cdf8a904d41f4b4a4bdca11a714e0"
+    },
+    {
+      "path": "assets/design-tokens.json",
+      "sha256": "5adadf6925bd063876aa1c0aa57a289e3df708b7439922a3ea802b855033287a"
+    },
+    {
+      "path": "assets/FONT-SOURCES.md",
+      "sha256": "ed9b0e0d239ae6f93fa2675da3d47f31c80af4bcc1a12eaa6bc63addbaa23dc6"
+    },
+    {
+      "path": "assets/fonts/Cairo-OFL.txt",
+      "sha256": "a4554e1799d42e1405924b61eb0e0722ae1623b1f1f07f995348f96c496362a9"
+    },
+    {
+      "path": "assets/fonts/Cairo-Variable.ttf",
+      "sha256": "667c987182391c91f4e57a2f455b1794fb5e3ee6ca4ef3383e86bb690fa9c964"
+    },
+    {
+      "path": "assets/fonts/Manrope-OFL.txt",
+      "sha256": "58172e0c0fac2cda8a37b348164bb55e44b0e69051e557e92b1d3f6910141f7b"
+    },
+    {
+      "path": "assets/fonts/Manrope-Variable.ttf",
+      "sha256": "3ae11c49db0455a3cc33e37d380f20fdb8c7f8b41dc07625c177e3d87a9d6ae6"
+    },
+    {
+      "path": "assets/icons/easy-rice.svg",
+      "sha256": "5aad956a6400056c3abb18411e0fd28966bc8ba50a6a739566a67e48b72ba92b"
+    },
+    {
+      "path": "assets/icons/easy-salad.svg",
+      "sha256": "9a28f647866f7b76acd94f008910194257f8303d416dac7a2cf37c69862d2fc9"
+    },
+    {
+      "path": "assets/icons/easy-wrap.svg",
+      "sha256": "8d103f7946241151dcde3c0bffd3e8200adbea504b45bc2f651edd5979553dce"
+    },
+    {
+      "path": "assets/logo-reference.png",
+      "sha256": "5c4bc2a4f49f8ce09074c2ff53ebb5a954f7675bcdb88cf02e8ddaab002f3e69"
+    },
+    {
+      "path": "assets/logo-reference.svg",
+      "sha256": "e874153a52bc50c4b793019c5421d9bbcf0faea7b2e4506fa1885c4e94bcb121"
+    },
+    {
+      "path": "assets/logos/logo-horizontal-black.png",
+      "sha256": "bad480bc689dac682b1752069773925f00a2a0e0f69512f6496dbe9a18a7a5bc"
+    },
+    {
+      "path": "assets/logos/logo-horizontal-black.svg",
+      "sha256": "4d31bc8d9470915911d9379a01cbd4649a8fcd9b8715b661c6356437da2d7958"
+    },
+    {
+      "path": "assets/logos/logo-horizontal-cream.png",
+      "sha256": "77d39da4907d3a79d2f9f34a5bf02b245500b08de8586b5a9c56593f202f2c6e"
+    },
+    {
+      "path": "assets/logos/logo-horizontal-cream.svg",
+      "sha256": "014ad07817f1cf3bde3b74cb662e30ca16942480c8e25739c96638907c59b471"
+    },
+    {
+      "path": "assets/logos/logo-horizontal-forest.png",
+      "sha256": "f1c35f8bb90ff8d4fff4a52c79a70bd53fe9c760b4c165847a03344e83c8b7ba"
+    },
+    {
+      "path": "assets/logos/logo-horizontal-forest.svg",
+      "sha256": "6a513366b97df479d0742b8c101f48f1ff74c8d88faff63f78bc288c1d92f347"
+    },
+    {
+      "path": "assets/logos/logo-horizontal-white.png",
+      "sha256": "826edae74cecb67d4c20685166531258c2861fc9e39b90bbec7c14683e34690e"
+    },
+    {
+      "path": "assets/logos/logo-horizontal-white.svg",
+      "sha256": "c0dc99073c0a42e9ca4039626a177bca389c413713baa830083053698e00f6e0"
+    },
+    {
+      "path": "assets/logos/logo-primary-cream.pdf",
+      "sha256": "1953e429d018b46a1115a8dea82e7b8a68580dfe8aec85f4d9548b2d0e125dac"
+    },
+    {
+      "path": "assets/logos/logo-primary-cream.svg",
+      "sha256": "c1c17c13eed721bb731160c9d797f5168fe5dd896ff9cad5445ac69f6853ed25"
+    },
+    {
+      "path": "assets/logos/logo-reversed-forest.pdf",
+      "sha256": "2994f1c0dd5335688c89fefabfabb7116f45e3489acb43dd96ba6f7ce2f70091"
+    },
+    {
+      "path": "assets/logos/logo-reversed-forest.svg",
+      "sha256": "873ca99ed45e95a54356d348166af7f74deca10bafde41fd308245a4e5cec86e"
+    },
+    {
+      "path": "assets/logos/logo-slogan-forest.svg",
+      "sha256": "d9226ea4b55021977b6d597825bafb3bd0a220bdb0efb9578bc4002815dde78a"
+    },
+    {
+      "path": "assets/logos/logo-stacked-black.png",
+      "sha256": "ac9f6da763b263a8371d27f3e5bb7452cf6f91cf9a61dded9f5aa519a2aa53ab"
+    },
+    {
+      "path": "assets/logos/logo-stacked-black.svg",
+      "sha256": "1f387c51f14d06317094b88b287d2fd9bb05613dfc8a61f54f8d4482a633c140"
+    },
+    {
+      "path": "assets/logos/logo-stacked-cream.png",
+      "sha256": "4c6f74b10809b5248686d6b1656fb66000a0d515c22d655dbcbbfa370d94c5f7"
+    },
+    {
+      "path": "assets/logos/logo-stacked-cream.svg",
+      "sha256": "70f84e066da9a0ade5033f579b61e72f6f5abd9c79c87f656a859b2ac61deec7"
+    },
+    {
+      "path": "assets/logos/logo-stacked-forest.png",
+      "sha256": "cbddd3fe378a6467df4b12866cdb4a4d0ef2aa0c577f624f4613d6886b5ac476"
+    },
+    {
+      "path": "assets/logos/logo-stacked-forest.svg",
+      "sha256": "d7bbc2185b2e8afcb48e5e843451af616cec9e52f0ae05412175d70ec73acee0"
+    },
+    {
+      "path": "assets/logos/logo-stacked-white.png",
+      "sha256": "0f56cc26da69005ae3401bccc31616d838d8b6ab051ae9542e293a4c0445cf8b"
+    },
+    {
+      "path": "assets/logos/logo-stacked-white.svg",
+      "sha256": "b610facb2c6ae019a64c6b9c975b2c1db9b778fba42d6f1c588dfbd734cafece"
+    },
+    {
+      "path": "assets/logos/symbol-black.png",
+      "sha256": "6974d0f92592f12f39f21bd7380b0b068127187bd4a3a13515fb807c60a084f3"
+    },
+    {
+      "path": "assets/logos/symbol-black.svg",
+      "sha256": "75c89f6a8506f586937eed35061f641e9d231f860c128a6276ceac328118dba1"
+    },
+    {
+      "path": "assets/logos/symbol-cream.png",
+      "sha256": "0dba6233a6742f56fe035b49ed1cb29c9bea82ee993f9588edf0bd582c3f8ee0"
+    },
+    {
+      "path": "assets/logos/symbol-cream.svg",
+      "sha256": "ea51e161b3e67b6c9a0bca65566ab1d84d8d8194dd6d937480d26d101a87e0b0"
+    },
+    {
+      "path": "assets/logos/symbol-forest.png",
+      "sha256": "7440c193ea8f84752b07091aa57236f77007bba139d3c291917f1885bd2f2e47"
+    },
+    {
+      "path": "assets/logos/symbol-forest.svg",
+      "sha256": "b12e1292c5a3fe4ca2bb07e2878d949f121d6ec318ca2330309f99e4301b5cb7"
+    },
+    {
+      "path": "assets/logos/symbol-white.png",
+      "sha256": "c4884c624f894701b1f67670d0627b58abdc39477f94dd0fb70e6f0d031537fa"
+    },
+    {
+      "path": "assets/logos/symbol-white.svg",
+      "sha256": "b1e30e8ca7e8d9a778dbb00ca90f777c940945b0d4f48181db8b0febe0949793"
+    },
+    {
+      "path": "assets/patterns/grain-pattern-cream.svg",
+      "sha256": "c05280d574e6226625d86dda1a5a32c130bea98ccd55dbebd0da49611de0c34b"
+    },
+    {
+      "path": "assets/patterns/grain-pattern-forest.svg",
+      "sha256": "a346b4f93db685fc9cfd6c209cbcbca7f9e7542989d11b8ee4efc6318f0618e7"
+    },
+    {
+      "path": "design-spec-and-prompts.json",
+      "sha256": "5407da18bff67a6526525d0f0821f7c0f6d3f574bbd0c7507a34b9745afccaf9"
+    },
+    {
+      "path": "docs/brand-guide.html",
+      "sha256": "3d76a9ed12ee6c943992a5cb722139df155c2f2b9745d29528353da4453967d7"
+    },
+    {
+      "path": "docs/brand-guide.pdf",
+      "sha256": "21fb6e532f86b313b8d61e93d0be08f133e11c9b86f1ab49fc8816f6fd8e258f"
+    },
+    {
+      "path": "docs/build_documents.py",
+      "sha256": "4681ec6a6ef53ffcf90d9331033f629f98f42b3406fe8622cd29d54a8130c22e"
+    },
+    {
+      "path": "docs/document-manifest.json",
+      "sha256": "3e433cdde764d6062c65ebdcf2a528930e946685d19e72ff2490bd08dd9a29d3"
+    },
+    {
+      "path": "docs/verify-layout.cjs",
+      "sha256": "5090fd0673b087f40e9ddc3daca08161c25e85937c4f8a1ffc1b2ff79ef47ec1"
+    },
+    {
+      "path": "generated/easy-food-brandboard.png",
+      "sha256": "04161841f4c906ddc46c268891673fe2d87bf3b883e2ff8597f0a9cb0ad5d0a8"
+    },
+    {
+      "path": "generated/easy-food-menu-hero.png",
+      "sha256": "bd1fc895852c66a5d91d3866cb20e3c79c82465f7f5176b838e7f1b9bb5dbbea"
+    },
+    {
+      "path": "index.html",
+      "sha256": "c8177a7f531eec32545696b1fdfa2db0d0171a6f75becd77540048d7ff957f58"
+    },
+    {
+      "path": "README.md",
+      "sha256": "88f2470f769c632415b12015d9cdc375a55e76757ddc96cbe0d340c25cd277ea"
+    },
+    {
+      "path": "templates/menu.html",
+      "sha256": "ba57665ba15e81120516dbd9044fa651f7b0d0c2471ab5b0722137b0d0e131a1"
+    },
+    {
+      "path": "templates/menu.pdf",
+      "sha256": "89a0bb77bcf449f17506f540e81a41fb2df3dd640692f89ad4cd51eba3fd5f67"
+    },
+    {
+      "path": "templates/menu.png",
+      "sha256": "09d8a26d2b7745abc823b24d60b64c8d926fd9c49ef3bd9882f7ac6484da6c95"
+    },
+    {
+      "path": "templates/social-square.html",
+      "sha256": "0a4a98c7a8e7f279937406361b4c705783bf753d4c8f861be8bbd2f3889873d7"
+    },
+    {
+      "path": "templates/social-square.png",
+      "sha256": "2e347c650ff3995468a2b9e09061e365f0c2dbcf53975ea6e4eed198bbfaf620"
+    },
+    {
+      "path": "templates/social-story.html",
+      "sha256": "c243ad7600799cf24a2fc6ecb1c187de7aca9df085ce90a61a11a905469b93ba"
+    },
+    {
+      "path": "templates/social-story.png",
+      "sha256": "4d8b79d6777c165730d8f09840c67c621e16c8d664d5ff8de0942be7bb933898"
+    }
+  ]
+}

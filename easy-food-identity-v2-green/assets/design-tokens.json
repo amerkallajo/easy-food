@@ -1,0 +1,17 @@
+{
+  "name": "Easy Food",
+  "version": "2.0",
+  "colors": {
+    "forest": "#146B45",
+    "lime": "#DDF45B",
+    "cream": "#FFF8EA",
+    "ink": "#17251C",
+    "white": "#FFFFFF"
+  },
+  "typography": {
+    "latin": "Manrope",
+    "arabic": "Cairo",
+    "logoWeight": 800
+  },
+  "slogan": "Eat smart. Live easy."
+}
