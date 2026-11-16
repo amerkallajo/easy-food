@@ -19,7 +19,7 @@ Coordinates (metres):  x = across the shop, 0 at the LEFT wall as seen from the 
                        z = up, 0 at the interior finished floor
 STATUS OF NUMBERS:  see SITE below - 'supplied', 'photo-estimate' or 'ASSUMED'.
 """
-import base64, json, math, os, struct
+import base64, json, math, os, struct, zlib
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -32,16 +32,24 @@ SITE = dict(
     D=5.06,          # supplied by owner, matches screenshot
     H=3.00,          # ASSUMED clear height - not measured
     wall_t=0.20,     # ASSUMED
-    open_x0=0.10, open_x1=2.69,   # photo-estimate scaled to the 2.79 m width: opening between piers (~2.6 m)
+    open_x0=0.10, front_right_inset=0.10,  # photo-estimate: opening derived from clear width minus pier insets
     door_x0=0.10, door_x1=0.95,   # photo-estimate: existing hinged glass door, left, opens inward
-    win_x0=1.00, win_x1=2.69,     # photo-estimate: existing fixed glazing -> new service window
+    win_x0=1.00,                  # photo-estimate: existing fixed glazing -> new service window
     sill=0.90,                    # design: counter/sill height above interior floor
     head=2.05,                    # photo-estimate: door / window head
     transom_top=2.55,             # photo-estimate
     step=0.15,                    # photo-estimate: one stone step up from the sidewalk
     sidewalk=4.00,                # ASSUMED sidewalk depth to kerb - measure
 )
-W, D, H = SITE['W'], SITE['D'], SITE['H']
+def configure_site(**measurements):
+    """Recompute derived dimensions after editing SITE or trying a survey width."""
+    global W, D, H
+    SITE.update(measurements)
+    W, D, H = SITE['W'], SITE['D'], SITE['H']
+    SITE['open_x1'] = SITE['win_x1'] = round(W - SITE['front_right_inset'], 3)
+
+
+configure_site()
 
 HEX = dict(forest='#146B45', lime='#DDF45B', cream='#FFF8EA', ink='#17251C')
 
@@ -57,7 +65,10 @@ def hexrgb(h):
 
 # name: (sRGB rgb, alpha, metallic, roughness, texture or None)
 MATS = {
-    'steel': ((0.80, 0.81, 0.82), 1, 0.85, 0.38, None),
+    'steel': ((0.80, 0.81, 0.82), 1, 0.95, 0.30, None),
+    'steel_edge': ((0.84, 0.85, 0.86), 1, 1, 0.19, None),
+    'gasket': ((0.045, 0.055, 0.050), 1, 0, 0.88, None),
+    'display': ((0.25, 0.80, 0.66), 1, 0, 0.25, None),
     'steel_dark': ((0.36, 0.37, 0.39), 1, 0.6, 0.5, None),
     'white': ((0.95, 0.95, 0.93), 1, 0, 0.55, None),
     'tile': ((0.86, 0.88, 0.87), 1, 0, 0.35, None),
@@ -137,11 +148,64 @@ class Node:
         ring = [(math.cos(2 * math.pi * i / seg), math.sin(2 * math.pi * i / seg)) for i in range(seg)]
         for i in range(seg):
             a, b = ring[i], ring[(i + 1) % seg]
-            n = ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, 0)
+            n = np.array(((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (r - rt) / (z1 - z0)))
+            n = tuple(n / np.linalg.norm(n))
             self._face(mat, n, [(cx + a[0] * r, cy + a[1] * r, z0), (cx + b[0] * r, cy + b[1] * r, z0),
                                 (cx + b[0] * rt, cy + b[1] * rt, z1), (cx + a[0] * rt, cy + a[1] * rt, z1)])
         self._face(mat, (0, 0, 1), [(cx + c * rt, cy + s * rt, z1) for c, s in ring])
         self._face(mat, (0, 0, -1), [(cx + c * r, cy + s * r, z0) for c, s in reversed(ring)])
+        return self
+
+    def rounded_box(self, mat, x0, y0, z0, x1, y1, z1, radius=0.008, segments=3):
+        """A filleted solid with smooth corner normals, kept inside the supplied bounds."""
+        lo, hi = np.minimum((x0, y0, z0), (x1, y1, z1)), np.maximum((x0, y0, z0), (x1, y1, z1))
+        half, centre = (hi - lo) / 2, (hi + lo) / 2
+        r = min(radius, float(min(half)) * 0.95)
+        core = half - r
+        axes = [np.concatenate((np.linspace(-h, -c, segments + 1), np.linspace(c, h, segments + 1))) for h, c in zip(half, core)]
+        for axis in range(3):
+            u, v = (axis + 1) % 3, (axis + 2) % 3
+            for sign in (-1, 1):
+                for i in range(len(axes[u]) - 1):
+                    for j in range(len(axes[v]) - 1):
+                        pts, normals = [], []
+                        corners = [(i, j), (i + 1, j), (i + 1, j + 1), (i, j + 1)]
+                        if sign < 0: corners.reverse()
+                        for a, b in corners:
+                            p = np.zeros(3); p[axis] = sign * half[axis]; p[u] = axes[u][a]; p[v] = axes[v][b]
+                            c = np.clip(p, -core, core)
+                            normal = (p - c) / np.linalg.norm(p - c)
+                            pts.append(tuple(centre + c + normal * r)); normals.append(tuple(normal))
+                        P, N, U, I = self._g(mat); base = len(P)
+                        P.extend(pts); N.extend(normals); U.extend([(0.0, 0.0)] * 4)
+                        I.extend([base, base + 1, base + 2, base, base + 2, base + 3])
+        return self
+
+    def tube(self, mat, a, b, radius=0.012, seg=10, r_end=None):
+        """Tube between arbitrary endpoints (handles, taps and posed limbs)."""
+        a, b = np.array(a, dtype=float), np.array(b, dtype=float)
+        direction = b - a; length = np.linalg.norm(direction); direction /= length
+        ref = np.array((0, 0, 1) if abs(direction[2]) < 0.9 else (0, 1, 0))
+        u = np.cross(direction, ref); u /= np.linalg.norm(u); v = np.cross(direction, u)
+        rt = radius if r_end is None else r_end
+        ring = [u * math.cos(i * math.tau / seg) + v * math.sin(i * math.tau / seg) for i in range(seg)]
+        for i in range(seg):
+            na, nb = ring[i], ring[(i + 1) % seg]
+            normal = (na + nb) / 2 + direction * (radius - rt) / length
+            normal /= np.linalg.norm(normal)
+            self._face(mat, tuple(normal), [tuple(a + na * radius), tuple(a + nb * radius), tuple(b + nb * rt), tuple(b + na * rt)])
+        self._face(mat, tuple(direction), [tuple(b + q * rt) for q in ring])
+        self._face(mat, tuple(-direction), [tuple(a + q * radius) for q in reversed(ring)])
+        return self
+
+    def ellipsoid(self, mat, centre, radii, seg=12, rings=8):
+        start = len(self._g(mat)[0])
+        self.sphere(mat, 0, 0, 0, 1, seg, rings)
+        P, N, _, _ = self._g(mat)
+        for i in range(start, len(P)):
+            P[i] = tuple(centre[k] + P[i][k] * radii[k] for k in range(3))
+            normal = np.array([N[i][k] / radii[k] for k in range(3)])
+            N[i] = tuple(normal / np.linalg.norm(normal))
         return self
 
     def sphere(self, mat, cx, cy, cz, r, seg=14, rings=8):
@@ -209,6 +273,34 @@ def top_box(n, mat, fp, side, u0, u1, d0, d1, z0, z1):
     else: n.box(mat, x0 + u0, y1 - d1, z0, x0 + u1, y1 - d0, z1)
 
 
+def unit_point(fp, side, u, d, z):
+    x0, y0, x1, y1 = fp
+    if side == 'R': return (x0 + d, y0 + u, z)
+    if side == 'L': return (x1 - d, y0 + u, z)
+    if side == 'B': return (x0 + u, y0 + d, z)
+    return (x0 + u, y1 - d, z)
+
+
+def top_round(n, mat, fp, side, u0, u1, d0, d1, z0, z1, radius=0.008):
+    n.rounded_box(mat, *unit_point(fp, side, u0, d0, z0), *unit_point(fp, side, u1, d1, z1), radius=radius)
+
+
+def pull(n, fp, side, u, z0, z1, d=0.012):
+    # All projections stay INSIDE the equipment footprint; d is measured from the front.
+    for z in (z0, z1):
+        n.tube('steel_edge', unit_point(fp, side, u, d, z), unit_point(fp, side, u, d + 0.031, z), 0.009)
+    n.tube('steel_edge', unit_point(fp, side, u, d, z0), unit_point(fp, side, u, d, z1), 0.012)
+
+
+def feet(n, fp, h=0.15):
+    x0, y0, x1, y1 = fp
+    for x in (x0 + 0.055, x1 - 0.055):
+        for y in (y0 + 0.055, y1 - 0.055):
+            n.cyl('gasket', x, y, 0, 0.018, 0.027, seg=12)
+            n.cyl('steel_dark', x, y, 0.018, 0.055, 0.019, seg=12)
+            n.cyl('steel_edge', x, y, 0.055, h + 0.025, 0.022, seg=12)
+
+
 def face_box(n, mat, fp, side, u0, u1, z0, z1, t=0.012):
     top_box(n, mat, fp, side, u0, u1, -t, 0, z0, z1)
 
@@ -221,51 +313,69 @@ def top_cyl(n, mat, fp, side, u, d, z0, z1, r, **kw):
     else: n.cyl(mat, x0 + u, y1 - d, z0, z1, r, **kw)
 
 
-def open_table(n, fp, h=0.90, shelf=True, mat='steel'):
+def open_table(n, fp, h=0.90, shelf=True, mat='steel', top=True):
     x0, y0, x1, y1 = fp
-    n.box(mat, x0, y0, h - 0.04, x1, y1, h)
+    if top: n.rounded_box(mat, x0, y0, h - 0.04, x1, y1, h, radius=0.010)
+    feet(n, fp)
     for lx in (x0 + 0.03, x1 - 0.07):
         for ly in (y0 + 0.03, y1 - 0.07):
-            n.box(mat, lx, ly, 0, lx + 0.04, ly + 0.04, h - 0.04)
+            n.rounded_box(mat, lx, ly, 0.15, lx + 0.04, ly + 0.04, h - 0.04, radius=0.004, segments=2)
     if shelf:
-        n.box(mat, x0 + 0.03, y0 + 0.03, 0.14, x1 - 0.03, y1 - 0.03, 0.17)
+        n.rounded_box(mat, x0 + 0.03, y0 + 0.03, 0.15, x1 - 0.03, y1 - 0.03, 0.175, radius=0.005)
 
 
 def cabinet(n, fp, side, h=0.90, doors=2, mat='steel'):
-    x0, y0, x1, y1 = fp
-    n.box('steel_dark', x0 + 0.03, y0 + 0.03, 0, x1 - 0.03, y1 - 0.03, 0.12)
-    n.box(mat, x0, y0, 0.12, x1, y1, h - 0.04)
-    n.box(mat, x0, y0, h - 0.04, x1, y1, h)
-    L = ulen(fp, side)
+    L, dp = ulen(fp, side), udepth(fp, side)
+    feet(n, fp)
+    top_round(n, mat, fp, side, 0.008, L - 0.008, 0.075, dp - 0.008, 0.15, h - 0.045)
+    top_round(n, 'steel_edge', fp, side, 0, L, 0, dp, h - 0.045, h, radius=0.009)
+    top_box(n, 'gasket', fp, side, 0.018, L - 0.018, 0.068, 0.078, 0.172, h - 0.064)
     for i in range(doors):
-        u0, u1 = L * i / doors + 0.02, L * (i + 1) / doors - 0.02
-        face_box(n, mat, fp, side, u0, u1, 0.16, h - 0.08, 0.015)
-        face_box(n, 'steel_dark', fp, side, u1 - 0.07, u1 - 0.04, h - 0.42, h - 0.16, 0.035)
+        u0 = L * i / doors + (0.018 if i == 0 else 0.003)
+        u1 = L * (i + 1) / doors - (0.018 if i == doors - 1 else 0.003)
+        top_round(n, mat, fp, side, u0, u1, 0.040, 0.070, 0.183, h - 0.075, radius=0.006)
+        pull(n, fp, side, u1 - 0.052, h - 0.36, h - 0.16)
 
 
 def fridge(n, fp, side, h=2.0):
-    x0, y0, x1, y1 = fp
-    n.box('steel_dark', x0 + 0.03, y0 + 0.03, 0, x1 - 0.03, y1 - 0.03, 0.10)
-    n.box('steel', x0, y0, 0.10, x1, y1, h)
-    L = ulen(fp, side)
-    face_box(n, 'steel', fp, side, 0.03, L - 0.03, 0.14, h - 0.22, 0.03)
-    face_box(n, 'steel_dark', fp, side, L - 0.12, L - 0.08, 0.95, 1.45, 0.06)
-    face_box(n, 'black', fp, side, 0.03, L - 0.03, h - 0.19, h - 0.03, 0.01)
+    L, dp = ulen(fp, side), udepth(fp, side)
+    feet(n, fp, 0.13)
+    top_round(n, 'steel', fp, side, 0.006, L - 0.006, 0.075, dp - 0.005, 0.13, h, radius=0.014)
+    top_round(n, 'gasket', fp, side, 0.025, L - 0.025, 0.064, 0.078, 0.155, h - 0.275, radius=0.008)
+    top_round(n, 'steel', fp, side, 0.035, L - 0.035, 0.035, 0.068, 0.167, h - 0.286, radius=0.009)
+    pull(n, fp, side, L - 0.107, 0.93, 1.39)
+    for z in (0.32, 1.52):
+        top_round(n, 'steel_edge', fp, side, 0.028, 0.052, 0.028, 0.060, z, z + 0.065, radius=0.004)
+    top_round(n, 'steel_dark', fp, side, 0.025, L - 0.025, 0.040, 0.077, h - 0.255, h - 0.027)
+    for j in range(7):
+        top_box(n, 'gasket', fp, side, 0.05, L - 0.22, 0.037, 0.041, h - 0.227 + j * 0.024, h - 0.218 + j * 0.024)
+    top_round(n, 'black', fp, side, L - 0.185, L - 0.047, 0.031, 0.041, h - 0.19, h - 0.085, radius=0.004)
+    # Seven-segment-like digital temperature indicator; no external font dependency.
+    for u in (L - 0.15, L - 0.112):
+        for zz in (h - 0.163, h - 0.138, h - 0.113):
+            top_box(n, 'display', fp, side, u, u + 0.023, 0.029, 0.031, zz, zz + 0.003)
+        top_box(n, 'display', fp, side, u + 0.020, u + 0.023, 0.029, 0.031, h - 0.160, h - 0.113)
 
 
 def saladette(n, fp, side, h=0.90):
     L = ulen(fp, side); Dp = udepth(fp, side)
     cabinet(n, fp, side, h, doors=max(2, round(L / 0.47)))
-    top_box(n, 'poly', fp, side, 0.03, L - 0.03, 0.02, 0.30, h, h + 0.02)          # cutting board
-    top_box(n, 'steel', fp, side, 0, L, 0.33, Dp, h, h + 0.13)                      # raised pan rail
+    top_round(n, 'poly', fp, side, 0.03, L - 0.03, 0.02, 0.30, h, h + 0.022)
+    top_round(n, 'steel', fp, side, 0, L, 0.33, Dp, h, h + 0.13)
     foods = ['f_green', 'f_red', 'f_yellow', 'f_white', 'f_purple', 'f_green', 'f_brown', 'f_red']
     k = max(3, int((L - 0.06) / 0.18))
     for i in range(k):
         u0 = 0.03 + (L - 0.06) * i / k + 0.01
         u1 = 0.03 + (L - 0.06) * (i + 1) / k - 0.01
-        top_box(n, foods[i % len(foods)], fp, side, u0, u1, 0.36, Dp - 0.04, h + 0.13, h + 0.135)
+        top_round(n, 'steel_edge', fp, side, u0, u1, 0.35, Dp - 0.025, h + 0.13, h + 0.142, radius=0.005)
+        top_round(n, foods[i % len(foods)], fp, side, u0 + 0.009, u1 - 0.009, 0.36, Dp - 0.035, h + 0.142, h + 0.145, radius=0.003)
+        for j in range(6):
+            top_cyl(n, foods[i % len(foods)], fp, side, (u0 + u1) / 2 + (j % 2 - 0.5) * 0.04,
+                    0.40 + (j // 2) * 0.08, h + 0.144, h + 0.155, 0.018, seg=7)
     top_box(n, 'glass', fp, side, 0, L, 0.33, 0.34, h + 0.13, h + 0.42)             # sneeze guard
-    top_box(n, 'steel', fp, side, 0, L, 0.33, Dp, h + 0.42, h + 0.44)               # over-shelf
+    top_round(n, 'steel_edge', fp, side, 0, L, 0.33, Dp, h + 0.42, h + 0.44)
+    for u in (0.025, L - 0.025):
+        top_cyl(n, 'steel_edge', fp, side, u, 0.34, h + 0.13, h + 0.42, 0.012)
 
 
 def bain_marie(n, fp, side, h=0.90):
@@ -276,23 +386,26 @@ def bain_marie(n, fp, side, h=0.90):
         for j in range(2):
             u0 = 0.04 + (L - 0.08) * i / 2 + 0.01; u1 = 0.04 + (L - 0.08) * (i + 1) / 2 - 0.01
             d0 = 0.06 + (Dp - 0.12) * j / 2 + 0.01; d1 = 0.06 + (Dp - 0.12) * (j + 1) / 2 - 0.01
-            top_box(n, 'steel_dark', fp, side, u0, u1, d0, d1, h + 0.02, h + 0.035)
+            top_round(n, 'steel_edge', fp, side, u0, u1, d0, d1, h + 0.02, h + 0.038, radius=0.006)
+            top_round(n, 'steel', fp, side, u0 + 0.009, u1 - 0.009, d0 + 0.009, d1 - 0.009, h + 0.038, h + 0.042, radius=0.003)
             top_cyl(n, 'black', fp, side, (u0 + u1) / 2, (d0 + d1) / 2, h + 0.035, h + 0.06, 0.018)
     for i in range(2):
-        face_box(n, 'black', fp, side, 0.10 + i * 0.12, 0.16 + i * 0.12, h - 0.14, h - 0.08, 0.02)
+        knob(n, fp, side, 0.13 + i * 0.14, h - 0.11)
 
 
 def griddle(n, fp, side, h=0.90):
     x0, y0, x1, y1 = fp
     L = ulen(fp, side); Dp = udepth(fp, side)
     open_table(n, fp, 0.60)
-    n.box('steel', x0 + 0.01, y0 + 0.01, 0.60, x1 - 0.01, y1 - 0.01, h - 0.04)
-    top_box(n, 'black', fp, side, 0.03, L - 0.03, 0.08, Dp - 0.06, h - 0.04, h - 0.02)   # plate
+    n.rounded_box('steel', x0 + 0.01, y0 + 0.01, 0.60, x1 - 0.01, y1 - 0.01, h - 0.04, radius=0.012)
+    top_round(n, 'steel_dark', fp, side, 0.03, L - 0.03, 0.08, Dp - 0.06, h - 0.04, h - 0.02)
     top_box(n, 'steel', fp, side, 0.01, L - 0.01, Dp - 0.05, Dp - 0.02, h - 0.04, h + 0.10)  # rear splash
     top_box(n, 'steel', fp, side, 0.01, 0.03, 0.08, Dp - 0.02, h - 0.04, h + 0.06)
     top_box(n, 'steel', fp, side, L - 0.03, L - 0.01, 0.08, Dp - 0.02, h - 0.04, h + 0.06)
     for i in range(2):
-        face_box(n, 'black', fp, side, 0.12 + i * 0.3, 0.18 + i * 0.3, 0.70, 0.76, 0.03)
+        knob(n, fp, side, 0.15 + i * 0.3, 0.735)
+    top_round(n, 'gasket', fp, side, 0.07, L - 0.07, 0.012, 0.020, 0.635, 0.677, radius=0.004)
+    top_round(n, 'steel_edge', fp, side, 0.11, L - 0.11, 0.004, 0.015, 0.646, 0.663, radius=0.004)
     for i, m in enumerate(['f_brown', 'f_brown', 'f_yellow', 'f_brown']):                # food on the plate
         top_box(n, m, fp, side, 0.08 + i * 0.12, 0.17 + i * 0.12, 0.22, 0.36, h - 0.02, h - 0.005)
 
@@ -301,13 +414,59 @@ def gas_range(n, fp, side, h=0.90):
     x0, y0, x1, y1 = fp
     L = ulen(fp, side); Dp = udepth(fp, side)
     open_table(n, fp, 0.60)
-    n.box('steel', x0 + 0.01, y0 + 0.01, 0.60, x1 - 0.01, y1 - 0.01, h - 0.05)
+    n.rounded_box('steel', x0 + 0.01, y0 + 0.01, 0.60, x1 - 0.01, y1 - 0.01, h - 0.05, radius=0.012)
     for i, d in enumerate((0.20, 0.50)):
         top_cyl(n, 'black', fp, side, L / 2, d, h - 0.05, h - 0.02, 0.12)
     top_cyl(n, 'steel', fp, side, L / 2, 0.50, h - 0.02, h + 0.22, 0.15)                 # pasta / sauce pot
+    top_cyl(n, 'steel_edge', fp, side, L / 2, 0.50, h + 0.22, h + 0.232, 0.153)
+    top_cyl(n, 'black', fp, side, L / 2, 0.50, h + 0.232, h + 0.252, 0.03)
+    for u in (L / 2 - 0.19, L / 2 + 0.19):
+        n.tube('steel_edge', unit_point(fp, side, u, 0.43, h + 0.13), unit_point(fp, side, u, 0.57, h + 0.13), 0.012)
     top_cyl(n, 'steel_dark', fp, side, L / 2, 0.20, h - 0.02, h + 0.05, 0.14)            # saute pan
     for i in range(2):
-        face_box(n, 'black', fp, side, 0.12 + i * 0.3, 0.18 + i * 0.3, 0.70, 0.76, 0.03)
+        knob(n, fp, side, 0.15 + i * 0.3, 0.735)
+
+
+def knob(n, fp, side, u, z):
+    n.tube('steel_edge', unit_point(fp, side, u, 0.035, z), unit_point(fp, side, u, 0.020, z), 0.033, seg=16)
+    n.tube('black', unit_point(fp, side, u, 0.021, z), unit_point(fp, side, u, 0.001, z), 0.025, seg=16)
+    top_box(n, 'white', fp, side, u - 0.002, u + 0.002, 0, 0.002, z + 0.010, z + 0.022)
+
+
+def sink_deck(n, fp, side, holes, h=0.90, d0=0.07, d1=None, drop=0.18):
+    """Split the top around actual bowl openings instead of painting dark rectangles on it."""
+    L, dp = ulen(fp, side), udepth(fp, side)
+    d1 = dp - 0.12 if d1 is None else d1
+    for da, db in ((0, d0), (d1, dp)):
+        top_round(n, 'steel_edge', fp, side, 0, L, da, db, h - 0.035, h, radius=0.006)
+    start = 0
+    for u0, u1 in holes:
+        top_round(n, 'steel_edge', fp, side, start, u0, d0, d1, h - 0.035, h, radius=0.005)
+        for a, b, c, d in ((u0, u0 + 0.009, d0, d1), (u1 - 0.009, u1, d0, d1),
+                            (u0, u1, d0, d0 + 0.009), (u0, u1, d1 - 0.009, d1)):
+            top_round(n, 'steel', fp, side, a, b, c, d, h - drop, h - 0.003, radius=0.003)
+        top_round(n, 'steel_dark', fp, side, u0 + 0.009, u1 - 0.009, d0 + 0.009, d1 - 0.009, h - drop, h - drop + 0.01)
+        top_cyl(n, 'steel_edge', fp, side, (u0 + u1) / 2, (d0 + d1) / 2, h - drop + 0.01, h - drop + 0.013, 0.027)
+        top_cyl(n, 'gasket', fp, side, (u0 + u1) / 2, (d0 + d1) / 2, h - drop + 0.013, h - drop + 0.014, 0.012)
+        start = u1
+    top_round(n, 'steel_edge', fp, side, start, L, d0, d1, h - 0.035, h, radius=0.005)
+
+
+def prep_table(n, fp, side):
+    open_table(n, fp, top=False)
+    sink_deck(n, fp, side, [(0.80, 1.20)], d0=0.08, d1=0.48)
+    tap(n, fp, side, 1.0, 0.54, 0.90, 0.28)
+
+
+def tap(n, fp, side, u, d, z, height=0.32):
+    # A swept swan-neck tap, including a downward spout.
+    pts = [(u, d, z), (u, d, z + height * 0.70)]
+    for j in range(9):
+        a = math.pi * j / 8
+        pts.append((u, d - 0.09 + 0.09 * math.cos(a), z + height * 0.70 + 0.09 * math.sin(a)))
+    pts.append((u, d - 0.18, z + height * 0.53))
+    for a, b in zip(pts, pts[1:]):
+        if a != b: n.tube('steel_edge', unit_point(fp, side, *a), unit_point(fp, side, *b), 0.011, seg=10)
 
 
 def rice_bench(n, fp, side):
@@ -321,26 +480,25 @@ def rice_bench(n, fp, side):
 
 def sink2(n, fp, side, h=0.90):
     L = ulen(fp, side); Dp = udepth(fp, side)
-    open_table(n, fp, h)
+    open_table(n, fp, h, top=False)
+    holes = []
     for i in range(2):
         u0 = 0.06 + (L - 0.12) * i / 2 + 0.02; u1 = 0.06 + (L - 0.12) * (i + 1) / 2 - 0.02
-        top_box(n, 'steel_dark', fp, side, u0, u1, 0.07, Dp - 0.12, h, h + 0.004)
-        top_box(n, 'steel', fp, side, u0, u1, 0.07, Dp - 0.12, h - 0.28, h - 0.04)
+        holes.append((u0, u1))
+    sink_deck(n, fp, side, holes, h)
     top_box(n, 'steel', fp, side, 0, L, Dp - 0.02, Dp, h, h + 0.30)                       # splashback
-    top_cyl(n, 'alu', fp, side, L / 2, Dp - 0.08, h, h + 0.32, 0.015)
-    top_box(n, 'alu', fp, side, L / 2 - 0.012, L / 2 + 0.012, Dp - 0.30, Dp - 0.08, h + 0.30, h + 0.325)
+    tap(n, fp, side, L / 2, Dp - 0.08, h)
     top_box(n, 'steel', fp, side, 0.05, L - 0.05, Dp - 0.30, Dp, 1.55, 1.57)              # drying shelf
     top_box(n, 'white', fp, side, L - 0.42, L - 0.07, Dp - 0.28, Dp, 1.85, 2.30)          # water heater
 
 
 def basin(n, fp, side):
     L = ulen(fp, side); Dp = udepth(fp, side)
-    top_box(n, 'steel', fp, side, 0, L, 0, Dp, 0.70, 0.86)
-    top_box(n, 'steel_dark', fp, side, 0.05, L - 0.05, 0.05, Dp - 0.07, 0.86, 0.864)
-    top_cyl(n, 'alu', fp, side, L / 2, Dp - 0.04, 0.86, 1.06, 0.012)
+    sink_deck(n, fp, side, [(0.045, L - 0.045)], 0.86, d0=0.045, d1=Dp - 0.075, drop=0.15)
+    tap(n, fp, side, L / 2, Dp - 0.04, 0.86, 0.20)
     top_box(n, 'steel', fp, side, 0.02, L - 0.02, Dp - 0.015, Dp, 0.86, 1.25)
     top_box(n, 'white', fp, side, L / 2 - 0.06, L / 2 + 0.06, Dp - 0.10, Dp, 1.35, 1.55)   # soap / towel
-    top_box(n, 'steel_dark', fp, side, 0.10, L - 0.10, -0.01, 0.0, 0.40, 0.55)            # knee valve
+    top_round(n, 'steel_dark', fp, side, 0.10, L - 0.10, 0.002, 0.012, 0.40, 0.55)
 
 
 def shelving(n, fp, h=2.0, tiers=5, goods=True):
@@ -357,12 +515,56 @@ def shelving(n, fp, h=2.0, tiers=5, goods=True):
             n.box('carton', x0 + 0.05, y0 + (y1 - y0) * 0.6, z + 0.025, x1 - 0.06, y1 - 0.05, z + 0.24)
 
 
-def person(n, x, y, cloth, z=0.0, hgt=1.70):
-    s = hgt / 1.70
-    n.cyl('ink', x, y, z, z + 0.85 * s, 0.14 * s, seg=14, r_top=0.16 * s)
-    n.cyl(cloth, x, y, z + 0.85 * s, z + 1.45 * s, 0.17 * s, seg=14, r_top=0.19 * s)
-    n.sphere(cloth, x, y, z + 1.45 * s, 0.19 * s, seg=12, rings=6)
-    n.sphere('skin', x, y, z + 1.60 * s, 0.105 * s, seg=12, rings=8)
+def person(n, x, y, cloth, z=0.0, hgt=1.70, facing=0, working=False):
+    p = Node('figure', 'people')
+    staff = cloth == 'cloth_staff'
+    shirt = 'poly' if staff else cloth
+    for sign in (-1, 1):
+        hip = (sign * 0.082, 0, 0.88)
+        knee = (sign * 0.090, -0.012, 0.49)
+        ankle = (sign * 0.095, 0.0, 0.10)
+        p.tube('ink', hip, knee, 0.071, seg=10, r_end=0.052)
+        p.tube('ink', knee, ankle, 0.052, seg=10, r_end=0.038)
+        p.rounded_box('black', sign * 0.095 - 0.052, -0.12, 0, sign * 0.095 + 0.052, 0.065, 0.095, radius=0.025, segments=2)
+    # Tailored hips, waist, shoulders and collar.
+    levels = [(0.84, 0.145, 0.086), (1.00, 0.145, 0.090), (1.29, 0.202, 0.105), (1.39, 0.123, 0.082)]
+    for (za, wa, da), (zb, wb, db) in zip(levels, levels[1:]):
+        for i in range(12):
+            a, b = math.tau * i / 12, math.tau * (i + 1) / 12
+            pts = [(wa * math.cos(a), da * math.sin(a), za), (wa * math.cos(b), da * math.sin(b), za),
+                   (wb * math.cos(b), db * math.sin(b), zb), (wb * math.cos(a), db * math.sin(a), zb)]
+            norm = np.cross(np.subtract(pts[1], pts[0]), np.subtract(pts[3], pts[0])); norm /= np.linalg.norm(norm)
+            p._face(shirt, tuple(norm), pts)
+    p.ellipsoid(shirt, (0, 0, 1.355), (0.125, 0.082, 0.05), rings=4)
+    p.cyl('skin', 0, 0, 1.385, 1.49, 0.047, seg=10)
+    p.ellipsoid('skin', (0, -0.007, 1.565), (0.088, 0.094, 0.123))
+    p.ellipsoid('ink', (0, 0.006, 1.636), (0.089, 0.090, 0.060), rings=5)
+    p.ellipsoid('skin', (0, -0.099, 1.565), (0.018, 0.022, 0.027), seg=8, rings=4)
+    for sign in (-1, 1):
+        p.ellipsoid('skin', (sign * 0.088, 0, 1.56), (0.018, 0.023, 0.032), seg=8, rings=5)
+        shoulder = (sign * 0.184, 0, 1.285)
+        elbow = (sign * 0.240, -0.025 if working else 0.005, 1.055)
+        wrist = (sign * 0.205, -0.215 if working else -0.045, 1.025 if working else 0.85)
+        p.ellipsoid(shirt, shoulder, (0.072, 0.074, 0.082), seg=10, rings=5)
+        p.tube(shirt, shoulder, elbow, 0.068, seg=10, r_end=0.045)
+        p.tube('skin', elbow, wrist, 0.043, seg=10, r_end=0.029)
+        p.ellipsoid('skin', wrist, (0.034, 0.034, 0.054), seg=8, rings=5)
+    if staff:
+        p.quad('cloth_staff', (-0.10, -0.108, 1.02), (0.10, -0.108, 1.02), (0.105, -0.111, 1.32), (-0.105, -0.111, 1.32))
+        p.quad('cloth_staff', (-0.165, -0.105, 0.67), (0.165, -0.105, 0.67), (0.145, -0.111, 1.04), (-0.145, -0.111, 1.04))
+        for xx in (-0.085, 0.085):
+            p.tube('cloth_staff', (xx, -0.106, 1.30), (xx * 0.8, -0.067, 1.39), 0.012, seg=6)
+        p.box('forest', -0.15, -0.116, 1.01, 0.15, -0.109, 1.04)
+        p.quad('forest', (-0.07, -0.118, 0.83), (0.07, -0.118, 0.83), (0.07, -0.118, 0.94), (-0.07, -0.118, 0.94))
+        p.box('lime', -0.065, -0.122, 0.929, 0.065, -0.119, 0.936)
+        p.ellipsoid('cloth_staff', (0, 0.009, 1.66), (0.092, 0.097, 0.039), rings=4)
+        p.box('lime', -0.045, -0.122, 1.21, 0.045, -0.117, 1.225)
+    s = hgt / 1.70; co, si = math.cos(facing), math.sin(facing)
+    for mat, (pos, normals, uv, indices) in p.geo.items():
+        P, N, U, I = n._g(mat); base = len(P)
+        P.extend([(x + s * (co * a - si * b), y + s * (si * a + co * b), z + s * c) for a, b, c in pos])
+        N.extend([(co * a - si * b, si * a + co * b, c) for a, b, c in normals])
+        U.extend(uv); I.extend([base + i for i in indices])
 
 
 # --------------------------------------------------------------------------------------
@@ -395,9 +597,14 @@ def build_shell(m, variant):
     for x in (dx0, dx1 - 0.04):
         g.box('alu', x, yg0, 0, x + 0.04, yg1, hd)
     g.box('alu', dx0, yg0, hd, dx1, yg1, hd + 0.05)
+    for xx in (dx0 + 0.035, dx1 - 0.046):
+        g.box('gasket', xx, yg0 + 0.011, 0.05, xx + 0.011, yg1 - 0.011, hd)
     g.box('glass', dx0 + 0.04, yg0 + 0.015, 0.05, dx1 - 0.04, yg1 - 0.015, hd)
     g.box('alu', dx0 + 0.04, yg0, 0, dx1 - 0.04, yg1, 0.05)
-    g.box('steel', dx1 - 0.10, yg0 - 0.04, 0.95, dx1 - 0.08, yg0, 1.25)   # pull handle
+    for yy in (yg0 - 0.045, yg1 + 0.045):
+        for zz in (0.98, 1.23):
+            g.tube('steel_edge', (dx1 - 0.095, yy, zz), (dx1 - 0.095, (yg0 + yg1) / 2, zz), 0.009)
+        g.tube('steel_edge', (dx1 - 0.095, yy, 0.98), (dx1 - 0.095, yy, 1.23), 0.012)
     # mullion between door and window
     g.box('alu', dx1, yg0, 0, wx0, yg1, tt)
     # transom: fresh-air louvre over the door, exhaust louvre at the far right, glass between
@@ -426,12 +633,22 @@ def build_shell(m, variant):
         g.box('alu', hb, yg0, 0, hb + 0.04, yg1, hd)
         g.box('glass', wx0, yg0 + 0.005, sill + 0.55, hb, yg1 - 0.03, hd)                 # single hatch
         g.box('glass', hb + 0.04, yg0 + 0.015, 0.05, wx1 - 0.04, yg1 - 0.015, hd)                # fixed show-glass at the grill
+    spans = [(wx0 + 0.018, wmid - 0.025, yg0 + 0.005), (wmid + 0.025, wx1 - 0.045, yg0 + 0.030)] if variant == 'A' else [(wx0 + 0.018, hb - 0.015, yg0 + 0.005)]
+    for a, b, yy in spans:
+        for zz in (sill + 0.535, hd - 0.015):
+            g.rounded_box('alu', a, yy - 0.010, zz, b, yy + 0.012, zz + 0.025, radius=0.004)
+        for xx in (a, b - 0.018):
+            g.rounded_box('alu', xx, yy - 0.010, sill + 0.55, xx + 0.018, yy + 0.012, hd, radius=0.003)
+        g.rounded_box('steel_edge', (a + b) / 2 - 0.065, yy - 0.023, sill + 0.575, (a + b) / 2 + 0.065, yy - 0.009, sill + 0.590, radius=0.004)
+    for zz in (sill + 0.008, hd + 0.002):
+        g.box('gasket', win_l, yg0 - 0.008, zz, win_r, yg1, zz + 0.006)
     ap = m.node('front/apron', 'front')
     ap.box('forest', win_l, yg0, 0, win_r, yg1 + 0.05, sill - 0.04)
     ap.quad('t_apron', (win_l, yg0 - 0.003, 0.0), (win_r, yg0 - 0.003, 0.0),
             (win_r, yg0 - 0.003, sill - 0.04), (win_l, yg0 - 0.003, sill - 0.04))
     # outside shelf / ledge (replaces the existing fold-out shelf)
-    ap.box('paint', win_l - 0.02, -t - 0.22, sill - 0.04, (win_r) + 0.02, 0.0, sill)
+    ap.rounded_box('paint', win_l - 0.02, -t - 0.22, sill - 0.04, win_r + 0.02, 0.0, sill, radius=0.012)
+    ap.box('steel_edge', win_l, -t - 0.222, sill - 0.047, win_r, -t - 0.208, sill - 0.040)
     # window labels on the head rail
     lab = m.node('front/labels', 'front')
     zl0, zl1 = hd - 0.19, hd - 0.01
@@ -484,19 +701,20 @@ def build_shell(m, variant):
 def people(m, variant, staff):
     t = SITE['wall_t']; st = SITE['step']
     p = m.node('people/staff', 'people_in')
-    for x, y in staff:
-        person(p, x, y, 'cloth_staff')
+    for i, (x, y) in enumerate(staff):
+        facing = 0 if i == 0 else (math.pi / 2 if variant == 'A' or i == 1 else -math.pi / 2)
+        person(p, x, y, 'cloth_staff', facing=facing, working=True)
     o = m.node('people/customers', 'people_out')
     if variant == 'A':
-        person(o, 1.38, -t - 0.72, 'cloth_a', z=-st)
-        person(o, 1.38, -t - 1.55, 'cloth_b', z=-st, hgt=1.62)
-        person(o, (SITE['win_x0'] + SITE['win_x1']) / 2 + 0.42, -t - 0.72, 'cloth_c', z=-st, hgt=1.66)
+        person(o, 1.38, -t - 0.72, 'cloth_a', z=-st, facing=math.pi, working=True)
+        person(o, 1.38, -t - 1.55, 'cloth_b', z=-st, hgt=1.62, facing=math.pi * 0.95)
+        person(o, (SITE['win_x0'] + SITE['win_x1']) / 2 + 0.42, -t - 0.72, 'cloth_c', z=-st, hgt=1.66, facing=math.pi, working=True)
         person(o, 3.25, -t - 2.9, 'cloth_b', z=-st)       # delivery rider waiting kerb-side
         o.box('forest', 3.05, -t - 3.25, -st + 1.0, 3.45, -t - 3.05, -st + 1.42)   # rider's box
     else:
-        person(o, 1.42, -t - 0.72, 'cloth_a', z=-st)
-        person(o, 1.42, -t - 1.55, 'cloth_b', z=-st, hgt=1.62)
-        person(o, 1.42, -t - 2.35, 'cloth_c', z=-st, hgt=1.66)
+        person(o, 1.42, -t - 0.72, 'cloth_a', z=-st, facing=math.pi, working=True)
+        person(o, 1.42, -t - 1.55, 'cloth_b', z=-st, hgt=1.62, facing=math.pi)
+        person(o, 1.42, -t - 2.35, 'cloth_c', z=-st, hgt=1.66, facing=math.pi)
 
 
 # --------------------------------------------------------------------------------------
@@ -518,8 +736,7 @@ def wall_shelf(m, name, fp, z, tiers=1):
 
 def service_counter(n, fp, variant):
     x0, y0, x1, y1 = fp
-    n.box('paint', x0, y0 - 0.07, 0.86, x1, y1, 0.90)             # counter top (runs through to the sill)
-    n.box('steel', x0, y1 - 0.03, 0.10, x1, y1, 0.86) if False else None
+    n.rounded_box('paint', x0, y0 - 0.07, 0.86, x1, y1, 0.90, radius=0.012)
     for lx in (x0 + 0.02, x1 - 0.06):
         n.box('steel', lx, y1 - 0.06, 0, lx + 0.04, y1 - 0.02, 0.86)
     # POS tablet + printer at the order side
@@ -534,14 +751,39 @@ def service_counter(n, fp, variant):
 def hood(m, fp, duct, fan):
     n = m.node('mep/hood', 'mep', label='Extraction hood', label_ar='شفّاط (هود)', code='E08', anchor=((fp[0] + fp[2]) / 2, (fp[1] + fp[3]) / 2, 2.2))
     x0, y0, x1, y1 = fp
-    n.box('steel', x0, y0, 1.95, x1, y1, 2.00)
-    n.box('steel', x0, y0, 2.00, x1, y1, 2.40)
-    n.box('steel_dark', x0 + 0.05, y0 + 0.05, 1.945, x1 - 0.05, y1 - 0.05, 1.95)
+    n.rounded_box('steel', x0, y0, 2.05, x1, y1, 2.40, radius=0.010)
+    n.box('gasket', x0 + 0.025, y0 + 0.025, 2.045, x1 - 0.025, y1 - 0.025, 2.051)
+    for a, b, c, d in ((x0, x0 + 0.032, y0, y1), (x1 - 0.032, x1, y0, y1),
+                        (x0, x1, y0, y0 + 0.032), (x0, x1, y1 - 0.032, y1)):
+        n.rounded_box('steel_edge', a, c, 1.95, b, d, 2.055, radius=0.008)
+    count = max(2, round((y1 - y0) / 0.45))
+    for i in range(count):
+        a = y0 + 0.055 + (y1 - y0 - 0.11) * i / count
+        b = y0 + 0.055 + (y1 - y0 - 0.11) * (i + 1) / count - 0.016
+        n.box('steel_dark', x0 + 0.12, a, 2.038, x1 - 0.055, b, 2.043)
+        for yy in (a, b - 0.012):
+            n.tube('steel_edge', (x0 + 0.12, yy, 1.99), (x1 - 0.06, yy, 2.04), 0.009)
+        for j in range(9):
+            xx = x0 + 0.135 + j * (x1 - x0 - 0.22) / 9
+            zz = 1.985 + (xx - x0 - 0.12) * 0.045
+            # Folded channels face downward into the capture recess.
+            n.quad('steel_edge', (xx, b - 0.01, zz + 0.014), (xx + 0.022, b - 0.01, zz),
+                   (xx + 0.022, a + 0.01, zz), (xx, a + 0.01, zz + 0.014))
+            n.quad('steel_edge', (xx + 0.022, b - 0.01, zz), (xx + 0.044, b - 0.01, zz + 0.014),
+                   (xx + 0.044, a + 0.01, zz + 0.014), (xx + 0.022, a + 0.01, zz))
+        n.tube('steel_edge', (x0 + 0.11, (a + b) / 2 - 0.04, 1.98), (x0 + 0.11, (a + b) / 2 + 0.04, 1.98), 0.007)
     d = m.node('mep/duct', 'mep')
     for b in duct:
-        d.box('alu', *b)
+        d.rounded_box('alu', *b, radius=0.008)
+        xa, ya, za, xb, yb, zb = b
+        if yb - ya > 1:
+            for j in range(1, math.ceil((yb - ya) / 0.7)):
+                yy = ya + j * 0.7
+                d.box('steel_edge', xa - 0.005, yy, za - 0.005, xb + 0.005, yy + 0.018, zb + 0.005)
+            for yy in (ya + 0.2, yb - 0.2):
+                d.tube('steel_dark', (xa - 0.018, yy, za), (xa - 0.018, yy, H), 0.006)
     if fan:
-        d.box('steel_dark', *fan)
+        d.rounded_box('steel_dark', *fan, radius=0.018)
     return n
 
 
@@ -576,9 +818,7 @@ def layout_A():
          fan=(W - 0.48, 0.05, 2.45, W, 0.60, 2.95))
     m.items.append(dict(code='E08', name='Hood 1.85 x 0.82 + duct + fan (overhead)', x0=R - 0.12, y0=3.20, x1=W, y1=5.06, h=1.95, cat='overhead', note='duct at ceiling along right wall to facade louvre'))
     bt = (0.0, 4.46, R, 5.06)
-    n = add(m, 'E09', 'Prep table + produce sink', bt, 'B', lambda n, fp, side: open_table(n, fp), 'prep', ar='طاولة تحضير + حوض غسل الخضار')
-    top_box(n, 'steel_dark', bt, 'B', 0.80, 1.20, 0.08, 0.48, 0.90, 0.904)
-    top_cyl(n, 'alu', bt, 'B', 1.00, 0.54, 0.90, 1.18, 0.012)
+    n = add(m, 'E09', 'Prep table + produce sink', bt, 'B', prep_table, 'prep', ar='طاولة تحضير + حوض غسل الخضار')
     top_box(n, 'steel', bt, 'B', 1.28, 1.30, 0.0, 0.60, 0.90, 1.15)      # splash divider
     top_box(n, 'f_red', bt, 'B', 1.42, R - 0.10, 0.10, 0.45, 0.90, 0.915)    # raw-protein board (red)
     top_box(n, 'carton', bt, 'B', 0.08, 0.60, 0.10, 0.52, 0.17, 0.60)    # rice sack bin under
@@ -649,9 +889,7 @@ def layout_B():
     add(m, 'E03', 'Refrigerated prep counter', (0.0, 2.10, 0.70, 3.50), 'L', saladette, 'cold', ar='برّاد تحضير (سلطات)')
     add(m, 'E11', 'Dry-goods shelving', (0.0, 3.55, 0.50, 4.40), None, shelving, 'store', h=2.0, ar='رفوف المواد الجافة')
     bt = (0.0, 4.46, R - 0.04, 5.06)
-    n = add(m, 'E09', 'Prep table + produce sink', bt, 'B', lambda n, fp, side: open_table(n, fp), 'prep', ar='طاولة تحضير + حوض غسل الخضار')
-    top_box(n, 'steel_dark', bt, 'B', 0.80, 1.20, 0.08, 0.48, 0.90, 0.904)
-    top_cyl(n, 'alu', bt, 'B', 1.00, 0.54, 0.90, 1.18, 0.012)
+    n = add(m, 'E09', 'Prep table + produce sink', bt, 'B', prep_table, 'prep', ar='طاولة تحضير + حوض غسل الخضار')
     top_box(n, 'f_red', bt, 'B', 1.40, R - 0.14, 0.10, 0.45, 0.90, 0.915)
     n = m.node('equip/E16 Inverter + battery', 'equip'); n.box('white', 1.03, 0.04, 0.05, 1.58, 0.42, 0.80)
     m.items.append(dict(code='E16', name='Inverter + LiFePO4 battery', x0=1.03, y0=0.04, x1=1.58, y1=0.42, h=0.8, cat='under', note='under counter'))
@@ -679,10 +917,51 @@ def to_gl(p):       # z-up (x,y,z) -> glTF y-up
     return (p[0], p[2], -p[1])
 
 
+METALS = {'steel', 'steel_edge', 'steel_dark', 'alu'}
+
+
+def make_metal_textures():
+    """Deterministic glTF packed roughness (G) / metalness (B) and subtle brush normals."""
+    os.makedirs(TEX, exist_ok=True)
+    rng = np.random.default_rng(27)
+    n = 256
+    grain = rng.normal(0, 1, (n, 1)) * 0.75 + rng.normal(0, 0.25, (n, n))
+    packed = np.empty((n, n, 3), dtype=np.uint8)
+    packed[:, :, 0] = 255
+    packed[:, :, 1] = np.clip(230 + grain * 8, 205, 250).astype(np.uint8)
+    packed[:, :, 2] = 250
+    normal = np.empty_like(packed)
+    normal[:, :, 0] = 128
+    normal[:, :, 1] = np.clip(128 + grain * 3, 116, 140).astype(np.uint8)
+    normal[:, :, 2] = 255
+
+    def png(name, pixels):
+        def chunk(kind, data):
+            return struct.pack('>I', len(data)) + kind + data + struct.pack('>I', zlib.crc32(kind + data) & 0xffffffff)
+        rows = b''.join(b'\0' + row.tobytes() for row in pixels)
+        data = b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', n, n, 8, 2, 0, 0, 0))
+        data += chunk(b'IDAT', zlib.compress(rows, 9)) + chunk(b'IEND', b'')
+        with open(os.path.join(TEX, name), 'wb') as fh: fh.write(data)
+    png('steel-metal-rough.png', packed)
+    png('steel-normal.png', normal)
+
+
+def metal_uv(pos, normals):
+    # Project each quad using its dominant average normal; keep UV derivatives continuous
+    # over fillets so normal maps do not reveal a diagonal seam through curved corners.
+    result = []
+    for start in range(0, len(pos), 4):
+        pts, ns = pos[start:start + 4], normals[start:start + 4]
+        axis = int(np.argmax(np.abs(np.mean(ns, axis=0))))
+        result.extend([(p[1] if axis == 0 else p[0], p[1] if axis == 2 else p[2]) for p in pts])
+    return [(u / 0.35, v / 0.35) for u, v in result]
+
+
 def write_glb(m, path):
     buf = bytearray()
     views, accs, meshes, nodes, images, textures, materials = [], [], [], [], [], [], []
     mat_index = {}
+    texture_index = {}
 
     def push(data, target=None):
         while len(buf) % 4: buf.append(0)
@@ -692,18 +971,25 @@ def write_glb(m, path):
         views.append(v)
         return len(views) - 1
 
+    def texture(filename):
+        if filename not in texture_index:
+            with open(os.path.join(TEX, filename), 'rb') as fh: bv = push(fh.read())
+            images.append(dict(bufferView=bv, mimeType='image/png', name=filename))
+            textures.append(dict(source=len(images) - 1, sampler=0))
+            texture_index[filename] = len(textures) - 1
+        return texture_index[filename]
+
     def mat(name):
         if name in mat_index: return mat_index[name]
         rgb, a, metal, rough, tex = MATS[name]
         pbr = dict(baseColorFactor=[lin(rgb[0]), lin(rgb[1]), lin(rgb[2]), a], metallicFactor=metal, roughnessFactor=rough)
-        md = dict(name=name, pbrMetallicRoughness=pbr, doubleSided=bool(tex) or a < 1)
+        md = dict(name=name, pbrMetallicRoughness=pbr, doubleSided=bool(tex) or a < 1 or name == 'cloth_staff')
+        if name in METALS:
+            pbr['metallicRoughnessTexture'] = dict(index=texture('steel-metal-rough.png'))
+            md['normalTexture'] = dict(index=texture('steel-normal.png'), scale=0.22)
         if a < 1: md['alphaMode'] = 'BLEND'
         if tex:
-            with open(os.path.join(TEX, tex), 'rb') as fh:
-                bv = push(fh.read())
-            images.append(dict(bufferView=bv, mimeType='image/png', name=tex))
-            textures.append(dict(source=len(images) - 1, sampler=0))
-            pbr['baseColorTexture'] = dict(index=len(textures) - 1)
+            pbr['baseColorTexture'] = dict(index=texture(tex))
         materials.append(md)
         mat_index[name] = len(materials) - 1
         return mat_index[name]
@@ -715,7 +1001,7 @@ def write_glb(m, path):
             pos = np.array([to_gl(p) for p in P], dtype=np.float32)
             nor = np.array([to_gl(q) for q in N], dtype=np.float32)
             ln = np.linalg.norm(nor, axis=1, keepdims=True); ln[ln == 0] = 1; nor = (nor / ln).astype(np.float32)
-            uv = np.array(U, dtype=np.float32)
+            uv = np.array(metal_uv(P, N) if mname in METALS else U, dtype=np.float32)
             idx = np.array(I, dtype=np.uint32)
             a = {}
             for key, arr, typ in (('POSITION', pos, 'VEC3'), ('NORMAL', nor, 'VEC3'), ('TEXCOORD_0', uv, 'VEC2')):
@@ -738,7 +1024,7 @@ def write_glb(m, path):
                 buffers=[dict(byteLength=len(buf))],
                 extras=dict(units='metres', site=SITE, note='Concept model. Width 2.79 m and depth 5.06 m supplied by owner; height, wall thickness, sidewalk depth ASSUMED; shopfront from photos.'))
     if images:
-        gltf.update(images=images, textures=textures, samplers=[dict(magFilter=9729, minFilter=9987)])
+        gltf.update(images=images, textures=textures, samplers=[dict(magFilter=9729, minFilter=9987, wrapS=10497, wrapT=10497)])
     while len(buf) % 4: buf.append(0)
     js = json.dumps(gltf, separators=(',', ':')).encode()
     js += b' ' * ((4 - len(js) % 4) % 4)
@@ -754,6 +1040,7 @@ def write_obj(m, path):
     with open(os.path.splitext(path)[0] + '.mtl', 'w') as fh:
         for k, (rgb, a, metal, rough, tex) in MATS.items():
             fh.write(f'newmtl {k}\nKd {rgb[0]:.3f} {rgb[1]:.3f} {rgb[2]:.3f}\nd {a}\n')
+            fh.write(f'Pr {rough}\nPm {metal}\n')
             if tex: fh.write(f'map_Kd source/textures/{tex}\n')
             fh.write('\n')
     with open(path, 'w') as fh:
@@ -765,12 +1052,15 @@ def write_obj(m, path):
                 if not I: continue
                 for p in P:
                     g = to_gl(p); fh.write(f'v {g[0]:.4f} {g[1]:.4f} {g[2]:.4f}\n')
-                for u in U:
+                for u in (metal_uv(P, N) if mname in METALS else U):
                     fh.write(f'vt {u[0]:.3f} {1 - u[1]:.3f}\n')
+                for normal in N:
+                    normal = np.array(to_gl(normal), dtype=float); normal /= np.linalg.norm(normal)
+                    fh.write(f'vn {normal[0]:.6f} {normal[1]:.6f} {normal[2]:.6f}\n')
                 fh.write(f'usemtl {mname}\n')
                 for i in range(0, len(I), 3):
                     a, b, c = I[i] + vo, I[i + 1] + vo, I[i + 2] + vo
-                    fh.write(f'f {a}/{a} {b}/{b} {c}/{c}\n')
+                    fh.write(f'f {a}/{a}/{a} {b}/{b}/{b} {c}/{c}/{c}\n')
                 vo += len(P)
 
 
@@ -904,6 +1194,7 @@ def write_svg(m, path, title, subtitle, notes):
 
 # --------------------------------------------------------------------------------------
 if __name__ == '__main__':
+    make_metal_textures()
     os.makedirs(os.path.join(PKG, 'model', 'viewer'), exist_ok=True)
     os.makedirs(os.path.join(PKG, 'plans'), exist_ok=True)
     data = {}
@@ -928,7 +1219,7 @@ if __name__ == '__main__':
         with open(os.path.join(PKG, 'model', f'layout-{m.name}.json'), 'w') as fh:
             json.dump(dict(site=SITE, units='metres', equipment=m.items, staff_positions=m.staff), fh, indent=1, ensure_ascii=False)
         with open(glb, 'rb') as fh:
-            data[m.name] = dict(glb=base64.b64encode(fh.read()).decode(), stations=[[*to_gl(s[:3]), s[3], s[4]] for s in m.stations])
+            data[m.name] = dict(site=SITE, glb=base64.b64encode(fh.read()).decode(), stations=[[*to_gl(s[:3]), s[3], s[4]] for s in m.stations])
         print(f'layout {m.name}: {cnt} nodes, {os.path.getsize(glb) / 1024:.0f} kB, {len(m.items)} schedule items')
         # overlap check on floor-standing items
         fl = [i for i in m.items if i['cat'] not in ('under', 'overhead')]
@@ -936,10 +1227,10 @@ if __name__ == '__main__':
             for j in range(i + 1, len(fl)):
                 a, b = fl[i], fl[j]
                 if min(a['x1'], b['x1']) - max(a['x0'], b['x0']) > 0.005 and min(a['y1'], b['y1']) - max(a['y0'], b['y0']) > 0.005:
-                    print('  OVERLAP', a['code'], b['code'])
+                    raise ValueError(f"Floor equipment overlap: {a['code']} / {b['code']}")
             a = fl[i]
             if a['x0'] < -1e-6 or a['x1'] > W + 1e-6 or a['y0'] < -1e-6 or a['y1'] > D + 1e-6:
-                print('  OUT OF ROOM', a['code'])
+                raise ValueError(f"Equipment outside room: {a['code']}")
     with open(os.path.join(PKG, 'model', 'viewer', 'model-data.js'), 'w') as fh:
         fh.write('window.EASYFOOD_MODELS = ' + json.dumps(data) + ';\n')
     print('done')

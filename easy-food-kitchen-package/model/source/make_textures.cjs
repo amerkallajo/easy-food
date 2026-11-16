@@ -1,6 +1,6 @@
 // Generates signage textures (PNG) used by build_model.py.
 // Run:  node make_textures.cjs      (needs the global Playwright package + Chrome)
-const { chromium } = require('C:/Users/amerk/AppData/Roaming/npm/node_modules/playwright');
+const { chromium } = require('playwright');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');

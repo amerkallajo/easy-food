@@ -1,0 +1,2 @@
+# Bundled Three.js contains shader strings whose original whitespace is preserved.
+viewer.bundle.js -diff -whitespace

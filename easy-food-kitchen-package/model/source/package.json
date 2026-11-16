@@ -1,0 +1,17 @@
+{
+  "name": "easy-food-kitchen-viewer",
+  "version": "1.1.0",
+  "private": true,
+  "scripts": {
+    "build:viewer": "node build_viewer.cjs",
+    "render": "node render.cjs",
+    "verify:viewer": "node verify_viewer.cjs"
+  },
+  "dependencies": {
+    "three": "0.170.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "playwright": "1.58.0"
+  }
+}
