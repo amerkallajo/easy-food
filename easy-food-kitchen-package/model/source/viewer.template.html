@@ -8,6 +8,7 @@
   html,body{margin:0;height:100%;overflow:hidden;font-family:"Segoe UI",Tahoma,Arial,sans-serif;background:#f3f1ea;color:#17251C}
   #stage{position:absolute;inset:0}
   #labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  body.no-annotations #labels,body.no-annotations #legend{display:none!important}
   .lab{position:absolute;transform:translate(-50%,-50%);background:rgba(255,248,234,.95);border:1.5px solid #146B45;border-radius:6px;
        padding:2px 8px;font-size:14px;font-weight:600;line-height:1.35;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.18)}
   .lab b{color:#146B45;font-weight:800}
@@ -40,8 +41,26 @@
 <div id="legend"><div><i style="background:#1a6be6"></i><span id="lg-raw"></span></div><div><i style="background:#f5851a"></i><span id="lg-rte"></span></div><div><i style="background:#146B45"></i><span id="lg-staff"></span></div></div>
 <div id="ui"><div><span class="h" id="t-view"></span><span id="views" style="display:contents"></span></div>
   <div><span class="h" id="t-layers"></span><span id="layers" style="display:contents"></span></div>
-  <div><button class="alt" id="b-lang"></button><button class="alt" id="b-layout"></button><span id="t-help" style="font-size:12px;margin-inline-start:8px"></span></div></div>
+  <div><button class="alt" id="b-lang"></button><button class="alt" id="b-layout"></button><button type="button" class="alt" id="b-labels" aria-controls="labels" aria-pressed="false"></button><span id="t-help" style="font-size:12px;margin-inline-start:8px"></span></div></div>
 <script>/*__DATA__*/</script>
 <script>/*__BUNDLE__*/</script>
+<script>
+/* Keep equipment labels optional without changing the model, views, or layers. */
+(() => {
+  const button = document.getElementById('b-labels');
+  let hidden = false;
+  const update = () => {
+    document.body.classList.toggle('no-annotations', hidden);
+    button.textContent = document.documentElement.lang === 'ar'
+      ? (hidden ? 'إظهار التسميات' : 'إخفاء التسميات')
+      : (hidden ? 'Show labels' : 'Hide labels');
+    button.setAttribute('aria-pressed', String(hidden));
+    button.title = button.textContent;
+  };
+  button.addEventListener('click', () => { hidden = !hidden; update(); });
+  new MutationObserver(update).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+  update();
+})();
+</script>
 </body>
 </html>
