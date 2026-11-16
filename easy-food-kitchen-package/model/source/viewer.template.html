@@ -21,16 +21,45 @@
   body.rtl #bar,body.rtl #ui,body.rtl #legend{direction:rtl}
   #title{font-size:18px;font-weight:700}
   #note{font-size:12px;opacity:.92;max-width:60%}
-  #ui{position:absolute;left:12px;right:12px;bottom:12px;display:flex;flex-direction:column;gap:6px;pointer-events:none}
-  #ui>div{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
-  #ui *{pointer-events:auto}
-  #ui span.h{font-size:12px;font-weight:700;margin-inline-end:4px}
+  /* Compact controls: keep the entire 3D canvas usable on phones. */
+  #b-menu{position:fixed;inset:auto 14px max(14px, env(safe-area-inset-bottom)) auto;z-index:12;
+    display:flex;align-items:center;gap:9px;min-height:46px;padding:10px 17px;border-radius:999px;
+    border:1px solid #10583b;background:#146B45;color:#fff;font-weight:700;font-size:14px;
+    box-shadow:0 6px 22px rgba(0,0,0,.24)}
+  body.rtl #b-menu{left:auto;right:14px}
+  #b-menu[aria-expanded="true"]{background:#17251C}
+  #ui{position:fixed;bottom:calc(72px + env(safe-area-inset-bottom));right:14px;left:auto;
+    z-index:11;box-sizing:border-box;width:min(430px,calc(100vw - 28px));
+    max-height:calc(100vh - 108px);max-height:calc(100dvh - 108px);
+    overflow:auto;overscroll-behavior:contain;border:1px solid rgba(20,107,69,.24);
+    border-radius:18px;background:rgba(255,253,246,.98);padding:14px;
+    box-shadow:0 16px 50px rgba(16,43,32,.28)}
+  #ui[hidden]{display:none!important}
+  #ui .ui-head{display:flex;justify-content:space-between;align-items:center;gap:8px;
+    padding:2px 2px 12px;font-size:16px;font-weight:800;color:#173e2e}
+  #ui .ui-head small{font-size:11px;font-weight:500;color:#68766e}
+  #ui details{margin:0 0 8px;border:1px solid #cfddd2;border-radius:11px;
+    background:#fff;overflow:hidden}
+  #ui details:last-child{margin-bottom:0}
+  #ui summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;
+    cursor:pointer;padding:12px 13px;font-size:14px;font-weight:750;color:#164d36;
+    -webkit-tap-highlight-color:transparent}
+  #ui summary::-webkit-details-marker{display:none}
+  #ui summary::after{content:"⌄";font-size:19px;line-height:1;transition:transform .18s ease}
+  #ui details[open] summary{border-bottom:1px solid #e4eee6;background:#f5faf5}
+  #ui details[open] summary::after{transform:rotate(180deg)}
+  #ui .choices{display:flex;flex-wrap:wrap;gap:7px;padding:12px;align-items:center}
+  #ui .choices button{min-height:38px;padding:8px 11px;border-radius:8px;flex:0 1 auto}
+  #ui .settings-actions{display:flex;flex-wrap:wrap;gap:7px;padding:12px}
+  #ui .settings-actions button{min-height:40px;padding:8px 11px;border-radius:8px}
+  #t-help{display:block;font-size:12px;line-height:1.7;color:#50665a;padding:0 13px 12px}
+  #ui button:focus-visible,#ui summary:focus-visible,#b-menu:focus-visible{outline:3px solid #e5b72a;outline-offset:2px}
   button{font:inherit;font-size:13px;border:1px solid #146B45;background:#fff;color:#146B45;border-radius:5px;padding:3px 9px;cursor:pointer}
   button.on{background:#146B45;color:#FFF8EA}
   button.alt{border-color:#17251C;background:#DDF45B;color:#17251C;font-weight:700}
   #legend{position:absolute;right:14px;bottom:110px;background:rgba(255,255,255,.95);border:1px solid #17251C;border-radius:8px;padding:10px 14px;font-size:14px;line-height:1.8;display:none}
   #legend i{display:inline-block;width:34px;height:7px;border-radius:4px;margin-inline-end:8px;vertical-align:middle}
-  body.shot #ui{display:none} body.shot #legend{bottom:14px}
+  body.shot #ui,body.shot #b-menu{display:none!important} body.shot #legend{bottom:14px}
   @media (max-width:1000px){.lab{font-size:11px;padding:1px 5px}.lab.st,.lab.ex{font-size:12px}#title{font-size:14px}#note{font-size:10.5px;max-width:50%}}
 </style>
 </head>
@@ -39,9 +68,27 @@
 <div id="labels"></div>
 <div id="bar"><div id="title">Easy Food</div><div id="note"></div></div>
 <div id="legend"><div><i style="background:#1a6be6"></i><span id="lg-raw"></span></div><div><i style="background:#f5851a"></i><span id="lg-rte"></span></div><div><i style="background:#146B45"></i><span id="lg-staff"></span></div></div>
-<div id="ui"><div><span class="h" id="t-view"></span><span id="views" style="display:contents"></span></div>
-  <div><span class="h" id="t-layers"></span><span id="layers" style="display:contents"></span></div>
-  <div><button class="alt" id="b-lang"></button><button class="alt" id="b-layout"></button><button type="button" class="alt" id="b-labels" aria-controls="labels" aria-pressed="false"></button><span id="t-help" style="font-size:12px;margin-inline-start:8px"></span></div></div>
+<button type="button" id="b-menu" aria-controls="ui" aria-expanded="false" aria-haspopup="true">☰ <span id="b-menu-text">خيارات العرض</span></button>
+<div id="ui" hidden role="region" aria-labelledby="ui-heading">
+  <div class="ui-head"><span id="ui-heading">خيارات العرض</span><small id="ui-hint">افتح القسم المطلوب</small></div>
+  <details id="view-group">
+    <summary><span id="t-view">المشهد</span></summary>
+    <div id="views" class="choices"></div>
+  </details>
+  <details id="layer-group">
+    <summary><span id="t-layers">الطبقات</span></summary>
+    <div id="layers" class="choices"></div>
+  </details>
+  <details id="settings-group">
+    <summary id="settings-title">الإعدادات</summary>
+    <div class="settings-actions">
+      <button type="button" class="alt" id="b-lang"></button>
+      <button type="button" class="alt" id="b-layout"></button>
+      <button type="button" class="alt" id="b-labels" aria-controls="labels" aria-pressed="false"></button>
+    </div>
+    <span id="t-help"></span>
+  </details>
+</div>
 <script>/*__DATA__*/</script>
 <script>/*__BUNDLE__*/</script>
 <script>
@@ -60,6 +107,45 @@
   button.addEventListener('click', () => { hidden = !hidden; update(); });
   new MutationObserver(update).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
   update();
+})();
+</script>
+
+<script>
+/* Progressive enhancement for the 3D controls; view/layer buttons stay owned by the original viewer. */
+(() => {
+  const menu = document.getElementById('b-menu');
+  const panel = document.getElementById('ui');
+  const menuText = document.getElementById('b-menu-text');
+  const showText = () => {
+    const ar = document.documentElement.lang === 'ar';
+    const open = menu.getAttribute('aria-expanded') === 'true';
+    menuText.textContent = ar ? (open ? 'إخفاء الخيارات' : 'إظهار الخيارات')
+                              : (open ? 'Hide controls' : 'Show controls');
+    document.getElementById('ui-heading').textContent = ar ? 'خيارات العرض' : 'Viewer controls';
+    document.getElementById('ui-hint').textContent = ar ? 'افتح القسم المطلوب' : 'Choose a section';
+    document.getElementById('settings-title').textContent = ar ? 'الإعدادات' : 'Settings';
+    menu.title = menuText.textContent;
+  };
+  const setOpen = (open, returnFocus = false) => {
+    panel.hidden = !open;
+    menu.setAttribute('aria-expanded', String(open));
+    showText();
+    if (returnFocus) menu.focus();
+  };
+  menu.addEventListener('click', () => setOpen(panel.hidden));
+  document.addEventListener('pointerdown', event => {
+    if (!panel.hidden && !panel.contains(event.target) && !menu.contains(event.target)) setOpen(false);
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !panel.hidden) { event.preventDefault(); setOpen(false, true); }
+  });
+  document.getElementById('views').addEventListener('click', event => {
+    if (event.target.closest('button') && matchMedia('(max-width: 760px)').matches) setOpen(false);
+  });
+  new MutationObserver(showText).observe(document.documentElement, {
+    attributes: true, attributeFilter: ['lang']
+  });
+  showText();
 })();
 </script>
 </body>
