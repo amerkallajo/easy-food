@@ -3979,7 +3979,48 @@ three/build/three.module.js:
   new MutationObserver(showText).observe(document.documentElement, {
     attributes: true, attributeFilter: ['lang']
   });
+  /*
+   * Translate visible layer names without changing their stable data-l keys.
+   * Re-apply after the Three.js viewer rebuilds buttons on layout/language changes.
+   */
+  const layerNamesAr = Object.freeze({
+    ceiling: 'السقف',
+    context: 'المحيط الخارجي',
+    equip: 'المعدات',
+    flow: 'مسار العمل',
+    front: 'الواجهة',
+    highshelf: 'الرفوف العلوية',
+    mep: 'تمديدات الخدمات',
+    people_in: 'الأشخاص بالداخل',
+    people_out: 'الأشخاص بالخارج',
+    shell: 'هيكل المحل',
+    shelves: 'الرفوف',
+    site: 'موقع المحل',
+    wall_back: 'الجدار الخلفي',
+    wall_left: 'الجدار الأيسر',
+    wall_right: 'الجدار الأيمن',
+    wc: 'الحمّام',
+    wc_upper: 'سقف الحمّام'
+  });
+  const layers = document.getElementById('layers');
+  const translateLayers = () => {
+    const arabic = document.documentElement.lang === 'ar';
+    layers.querySelectorAll('button[data-l]').forEach(button => {
+      const key = button.dataset.l;
+      const label = arabic ? (layerNamesAr[key] || key) : key;
+      if (button.textContent !== label) button.textContent = label;
+      button.setAttribute('aria-label', label);
+      button.title = arabic && layerNamesAr[key] ? label + ' (' + key + ')' : label;
+      button.lang = arabic ? 'ar' : 'en';
+      button.dir = arabic ? 'rtl' : 'ltr';
+    });
+  };
+  new MutationObserver(translateLayers).observe(layers, { childList: true });
+  new MutationObserver(translateLayers).observe(document.documentElement, {
+    attributes: true, attributeFilter: ['lang']
+  });
   showText();
+  translateLayers();
 })();
 </script>
 </body>
