@@ -59,9 +59,12 @@ node make_textures.cjs         # only if signage artwork changes
 npm run build:viewer           # rebuild bundle after viewer.src.js changes
 python make_viewer.py          # rebuilds the single-file viewer.html
 python verify_model.py         # mesh bounds, nearby widths, GLB/PBR validation
+node verify_viewer.cjs         # every view, both layouts, both languages, phone size, clean console
 node render.cjs                # eleven PNG renders in each language, plans and flow image
 npm run verify:viewer          # offline controls, languages, layouts, mobile and console
 ```
+
+`details.py` holds the scene dressing (counter-top props, wall band, sockets, order screen, gas line, LED panels, neighbouring facades, upper floors, car, scooter). It is decoration only: it never changes an equipment footprint or a dimension, and the neighbouring buildings, car and scooter are illustrative, not surveyed. The viewer adds ambient-occlusion shading; append `?ao=0` to the viewer address on a slow device.
 
 `make_viewer.py` needs `viewer.bundle.js` in `model/source/` (a copy is kept there). `npm run build:viewer` builds it using the pinned Three.js 0.170.0 and esbuild dependencies in this folder. The delivered viewer still opens offline with no installation.
 

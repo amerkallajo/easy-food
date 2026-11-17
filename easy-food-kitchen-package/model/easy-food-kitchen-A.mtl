@@ -274,3 +274,81 @@ Pr 0.6
 Pm 0
 map_Kd source/textures/blade.png
 
+newmtl kraft
+Kd 0.800 0.660 0.470
+d 1
+Pr 0.85
+Pm 0
+
+newmtl led
+Kd 1.000 0.970 0.900
+d 1
+Pr 0.4
+Pm 0
+
+newmtl led_orange
+Kd 1.000 0.550 0.120
+d 1
+Pr 0.4
+Pm 0
+
+newmtl screen
+Kd 0.060 0.160 0.130
+d 1
+Pr 0.2
+Pm 0
+
+newmtl gas_yellow
+Kd 0.930 0.740 0.100
+d 1
+Pr 0.45
+Pm 0.2
+
+newmtl win_dark
+Kd 0.100 0.130 0.160
+d 1
+Pr 0.08
+Pm 0.4
+
+newmtl nb_cream
+Kd 0.900 0.880 0.820
+d 1
+Pr 0.8
+Pm 0
+
+newmtl nb_blue
+Kd 0.130 0.300 0.620
+d 1
+Pr 0.5
+Pm 0
+
+newmtl car_paint
+Kd 0.780 0.800 0.820
+d 1
+Pr 0.28
+Pm 0.7
+
+newmtl rubber
+Kd 0.035 0.035 0.040
+d 1
+Pr 0.9
+Pm 0
+
+newmtl soil
+Kd 0.260 0.210 0.160
+d 1
+Pr 0.95
+Pm 0
+
+newmtl facade
+Kd 0.740 0.710 0.650
+d 1
+Pr 0.9
+Pm 0
+
+newmtl trim
+Kd 0.600 0.580 0.540
+d 1
+Pr 0.85
+Pm 0
+
