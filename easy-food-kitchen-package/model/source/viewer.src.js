@@ -5,11 +5,16 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 
 const q = new URLSearchParams(location.search);
 let variant = q.get('m') || 'A';
 let lang = q.get('lang') || 'ar';
 const shot = q.get('shot') === '1';
+const useAO = q.get('ao') !== '0';   // ambient occlusion; add ?ao=0 on slow devices
 const site = window.EASYFOOD_MODELS.A.site;
 const CX = site.W / 2;
 // model coords: x across, y up, z = -depth (street is +z, back wall is z = -5.06)
@@ -77,7 +82,7 @@ renderer.toneMappingExposure = 1.0;
 document.getElementById('stage').appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xf3f1ea);
+scene.background = null;
 const pmrem = new THREE.PMREMGenerator(renderer);
 const environment = new RoomEnvironment();
 // Long neutral reflection cards reveal curved steel edges without external HDR files.
@@ -108,6 +113,30 @@ for (const depth of [1.15, 3.45]) {
   const l = new THREE.PointLight(0xfff1dc, 0, 7, 1.6); l.position.copy(P(x, d, 2.75)); l.castShadow = d > 2 && d < 3; l.shadow.mapSize.set(1024, 1024); l.shadow.bias = -0.002; scene.add(l); inner.push(l);
 });
 
+
+// ---------- sky gradient for the street view ----------
+const sky = (() => {
+  const c = document.createElement('canvas'); c.width = 4; c.height = 512;
+  const g = c.getContext('2d'); const gr = g.createLinearGradient(0, 0, 0, 512);
+  gr.addColorStop(0, '#6fa8dc'); gr.addColorStop(0.55, '#b9d8f0'); gr.addColorStop(1, '#eef3f2');
+  g.fillStyle = gr; g.fillRect(0, 0, 4, 512);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+})();
+const flatBg = new THREE.Color(0xf3f1ea);
+
+// ---------- post-processing: ground-truth ambient occlusion for contact shading ----------
+let composer = null, renderPass = null, aoPass = null;
+if (useAO) {
+  const target = new THREE.WebGLRenderTarget(innerWidth, innerHeight, { type: THREE.HalfFloatType, samples: 4 });
+  composer = new EffectComposer(renderer, target);
+  renderPass = new RenderPass(scene, new THREE.PerspectiveCamera());
+  aoPass = new GTAOPass(scene, renderPass.camera, innerWidth, innerHeight);
+  aoPass.updateGtaoMaterial({ radius: 0.28, distanceExponent: 1.4, thickness: 1.2, scale: 1.15, samples: 16, screenSpaceRadius: false });
+  aoPass.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, radiusExponent: 1, rings: 2, samples: 16 });
+  aoPass.blendIntensity = 0.85;
+  composer.addPass(renderPass); composer.addPass(aoPass); composer.addPass(new OutputPass());
+}
+let sizeW = 0, sizeH = 0;
 
 // ---------- surface detail: procedural textures, world-space UVs, edge lines ----------
 function canvasTex(size, draw, metres) {
@@ -186,6 +215,13 @@ function polish(o) {
     if (name === 'paint') { m.color.set(0xf3ead6); m.roughness = 0.9; }
     if (name === 'glass') { m.opacity = 0.13; m.roughness = 0.06; m.metalness = 0; m.envMapIntensity = 0.7; m.color.set(0xc1dce0); }
     if (name === 'display') { m.emissive.set(0x41ccb0); m.emissiveIntensity = 0.7; }
+    if (name === 'led') { m.emissive.set(0xfff0d8); m.emissiveIntensity = 2.2; m.color.set(0xffffff); }
+    if (name === 'led_orange') { m.emissive.set(0xff7a1a); m.emissiveIntensity = 2.0; }
+    if (name === 'screen') { m.emissive.set(0x0f5a44); m.emissiveIntensity = 0.9; m.roughness = 0.15; }
+    if (name === 'win_dark') { m.metalness = 0.55; m.roughness = 0.06; m.envMapIntensity = 2.4; }
+    if (name === 'car_paint') { m.metalness = 0.75; m.roughness = 0.24; m.envMapIntensity = 1.6; }
+    if (name === 'gas_yellow') { m.roughness = 0.4; }
+    if (name === 'kraft') { m.roughness = 0.9; }
     if (name === 'forest' || name === 'lime') { m.roughness = 0.45; }
     if (name === 'white' || name === 'poly') { m.roughness = 0.35; }
     if (name === 'black') { m.roughness = 0.35; m.metalness = 0.3; }
@@ -238,19 +274,21 @@ function applyView(name) {
   if (controls) controls.dispose();
   controls = new OrbitControls(camera, renderer.domElement);
   controls.target.copy(target); controls.update();
+  if (composer) { renderPass.camera = camera; aoPass.camera = camera; }
   for (const [ln, objs] of Object.entries(layers)) objs.forEach(o => (o.visible = !v.hide.includes(ln)));
   document.querySelectorAll('#layers button').forEach(b => b.classList.toggle('on', !v.hide.includes(b.dataset.l)));
   if (v.interior) {
-    sun.intensity = 0.15; hemi.intensity = 0.24; inner.forEach(l => (l.intensity = 2.7)); strips.forEach(l => (l.intensity = 3.0)); scene.background.set(0xdfe8ee); scene.environmentIntensity = 0.8;
+    sun.intensity = 0.15; hemi.intensity = 0.24; inner.forEach(l => (l.intensity = 2.7)); strips.forEach(l => (l.intensity = 3.0)); scene.background = flatBg; flatBg.set(0xdfe8ee); scene.environmentIntensity = 0.8;
     sun.position.copy(P(-3, -8, 7));
   } else if (v.exterior) {
-    sun.intensity = 3.2; hemi.intensity = 0.45; inner.forEach(l => (l.intensity = 4.0)); scene.background.set(0xbcd9ee); scene.environmentIntensity = 0.7;
+    sun.intensity = 3.2; hemi.intensity = 0.45; inner.forEach(l => (l.intensity = 4.0)); scene.background = sky; scene.environmentIntensity = 0.8;
     strips.forEach(l => (l.intensity = 2.0));
     sun.position.copy(P(-5, -9, 9));
   } else {
-    sun.intensity = 3.0; hemi.intensity = 0.42; inner.forEach(l => (l.intensity = 0)); scene.background.set(0xe9e4d6); scene.environmentIntensity = 0.75;
+    sun.intensity = 3.0; hemi.intensity = 0.42; inner.forEach(l => (l.intensity = 0)); scene.background = flatBg; flatBg.set(0xe9e4d6); scene.environmentIntensity = 0.75;
     strips.forEach(l => (l.intensity = 0));
     sun.position.copy(P(5, -5, 10));
+    if (v.ortho) { sun.intensity = 1.9; scene.environmentIntensity = 0.45; hemi.intensity = 0.5; }   // plan view: avoid blown-out steel tops
   }
   sun.target.position.copy(P(CX, 2.5, 0));
   buildLabels(v.labels);
@@ -301,10 +339,14 @@ function placeLabels() {
 }
 
 function frame() {
-  renderer.setSize(innerWidth, innerHeight, false);
-  renderer.domElement.style.width = '100%'; renderer.domElement.style.height = '100%';
+  if (innerWidth !== sizeW || innerHeight !== sizeH) {
+    sizeW = innerWidth; sizeH = innerHeight;
+    renderer.setSize(sizeW, sizeH, false);
+    renderer.domElement.style.width = '100%'; renderer.domElement.style.height = '100%';
+    if (composer) composer.setSize(sizeW, sizeH);
+  }
   if (camera.isPerspectiveCamera) { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
-  renderer.render(scene, camera);
+  if (composer) composer.render(); else renderer.render(scene, camera);
   placeLabels();
 }
 

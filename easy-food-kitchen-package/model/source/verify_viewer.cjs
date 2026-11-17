@@ -18,10 +18,17 @@ const { chromium } = require('playwright');
     const url = pathToFileURL(path.resolve(__dirname, '../viewer/viewer.html')).href;
     await page.goto(url + '?lang=en');
     await page.waitForFunction(() => window.__ready === true);
+    // The controls sit behind a menu button and collapsible groups; open them so their buttons can be exercised.
+    const openMenus = async () => {
+      if (await page.locator('#ui').isHidden()) await page.locator('#b-menu').click();
+      await page.evaluate(() => document.querySelectorAll('#ui details').forEach(d => { d.open = true; }));
+    };
+    await openMenus();
     for (const variant of ['A', 'B', 'A']) {
       if (variant !== 'A' || (await page.locator('#title').textContent()).includes('Layout B')) {
         await page.locator('#b-layout').click();
         await page.waitForFunction(() => window.__ready === true);
+        await openMenus();
       }
       assert.match(await page.locator('#title').textContent(), new RegExp('Layout ' + variant));
       for (const view of ['cutaway', 'top', 'interior_front', 'interior_back', 'exterior', 'flow', 'equipment', 'hood_detail', 'wc']) {
@@ -51,10 +58,13 @@ const { chromium } = require('playwright');
     await layer.click(); assert.equal(await layer.getAttribute('class'), 'on');
     await layer.click(); assert.equal(await layer.getAttribute('class'), '');
     await page.setViewportSize({ width: 390, height: 844 });
+    await openMenus();
     await page.locator('#views button[data-v="exterior"]').click();
+    await openMenus();   // choosing a view may close the panel on a phone-sized screen
     assert(await page.locator('#b-lang').isVisible());
     const mobile = await page.evaluate(() => ({ width: document.documentElement.scrollWidth, viewport: innerWidth }));
     assert.equal(mobile.width, mobile.viewport);
+    await openMenus();
     await page.locator('#b-lang').click();
     assert.equal(await page.locator('html').getAttribute('lang'), 'en');
     assert.deepEqual(network, [], 'Single-file viewer must have no network dependencies');

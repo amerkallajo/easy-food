@@ -117,6 +117,10 @@ MATS = {
 }
 
 
+import details  # scene dressing: props, fixtures, street context (decoration only)
+MATS.update(details.EXTRA_MATS)
+
+
 # --------------------------------------------------------------------------------------
 class Node:
     def __init__(self, name, layer, label=None, code=None, anchor=None, label_ar=None):
@@ -933,6 +937,7 @@ def layout_A():
         ((1.0 + W) / 2 + 0.4, -0.05, 1.25, '8 Hand-off', '8 التسليم'),
     ]
     m.staff = staff
+    details.dress(m, 'A', globals())
     return m
 
 
@@ -970,6 +975,7 @@ def layout_B():
         (rx, 3.80, 1.3, '7 Pack (return to front hatch)', '7 التعبئة والعودة للواجهة'), ((1.0 + hb) / 2, -0.05, 1.25, '8 Single hatch: order + collect', '8 نافذة واحدة: طلب + استلام'),
     ]
     m.staff = staff
+    details.dress(m, 'B', globals())
     return m
 
 
@@ -1049,6 +1055,7 @@ def write_glb(m, path):
             pbr['metallicRoughnessTexture'] = dict(index=texture('steel-metal-rough.png'))
             md['normalTexture'] = dict(index=texture('steel-normal.png'), scale=0.22)
         if a < 1: md['alphaMode'] = 'BLEND'
+        if name in details.EMISSIVE: md['emissiveFactor'] = list(details.EMISSIVE[name])
         if tex:
             pbr['baseColorTexture'] = dict(index=texture(tex))
         materials.append(md)
