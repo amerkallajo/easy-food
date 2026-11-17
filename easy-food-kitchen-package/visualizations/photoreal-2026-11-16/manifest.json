@@ -1,12 +1,13 @@
 [
   {
-    "file": "05-A-exterior-signage-order-collect.png",
+    "file": "05-A-exterior-site-matched-2026-11-17.png",
     "layout": "A",
-    "width": 1587,
-    "height": 991,
-    "bytes": 2833889,
-    "sha256": "dc613d05a665a1bdb16279016e94c112e9f704a4eaecd2a41cbfd9cc25954e5b",
-    "reference_sha256": "16101375a0d9ccd96d35d08657dc89086dbff9a79ed58775eb5bd2596ad71f60"
+    "width": 1448,
+    "height": 1086,
+    "bytes": 3114157,
+    "sha256": "55545eea8844e00f748e04303fd4e69b54b6305f1b42dd214ce7a88b667680d4",
+    "reference_sha256": "16101375a0d9ccd96d35d08657dc89086dbff9a79ed58775eb5bd2596ad71f60",
+    "revision_date": "2026-11-17"
   },
   {
     "file": "03-A-interior-from-door.png",

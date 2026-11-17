@@ -7,3 +7,7 @@ Selected layout A: 01, 02, 03, 04, 05, 06, 09, 10 and 11. Alternative layout B: 
 The 2.79 × 5.06 m shop dimensions are owner supplied. Ceiling 3.00 m and WC outer envelope 1.20 × 1.60 m remain assumptions. The rear-left toilet and accordion door are retained in the design. Cutaways hide upper partitions or whole walls for illustration. Generated furnishings, finishes, food, people and lettering can differ from the model. Use the parametric model and surveyed plans for dimensions; these images are concept illustrations, not photographs of a completed site.
 
 Generated with the built-in image-generation tool using the PNG model references. Exact prompts and source references are saved in prompts.json.
+
+## Exterior revision — 17 November 2026
+
+View 05 now matches the actual exterior location, including the ALNAWRAS neighbor, black canopy, existing shutter and aluminum opening, dark threshold and concrete pavement/manhole. The Easy Food green decoration, white-tiled stainless kitchen and planning are retained. The other ten concept images and all models/plans are unchanged. Original survey photos remain local. The exact prompt and reference roles are recorded in exterior-revision-2026-11-17.json.

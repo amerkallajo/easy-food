@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-17",
+  "tool": "Built-in image_gen",
+  "scope": "Exterior only: match the actual shop frontage and surroundings while retaining the approved Easy Food decoration and kitchen planning.",
+  "file": "05-A-exterior-site-matched-2026-11-17.png",
+  "reference_roles": [
+    {
+      "file": "refrence/photo_2026-11-16_16-25-34.jpg",
+      "role": "Primary actual exterior geometry"
+    },
+    {
+      "file": "refrence/photo_2026-11-16_16-25-38.jpg",
+      "role": "Actual neighboring shops, canopy, air conditioners, pavement and context"
+    },
+    {
+      "file": "previous images/05-A-exterior-signage-order-collect.png (available in Git history)",
+      "role": "Approved Easy Food decoration, branding, service windows and new kitchen style"
+    }
+  ],
+  "prompt": "Use case: precise-object-edit / architectural exterior visualization.\nAsset type: ONE landscape 16:10 website hero photograph, matching the existing Easy Food concept image's photographic quality.\nInput image 1: PRIMARY real-world exterior geometry and location reference, the close daytime Mar Coffee facade. Input image 2: wider actual exterior context with adjacent ALNAWRAS shop, canopy and AC units. Input image 3: APPROVED EASY FOOD DESIGN reference for our NEW green decoration, branding, service windows and interior kitchen. The user explicitly wants to KEEP the Easy Food decoration and kitchen planning from image 3. They DO NOT want the old Mar Coffee decoration or interior brought back.\nPrimary request: Recreate our proposed Easy Food shop from image 3 installed in the ACTUAL physical storefront and street setting of images 1-2. Change the building context to match the real location. Keep the modern Easy Food fit-out, green fascia, cream logo, two order/collect hatches, left staff door and NEW white-tiled stainless kitchen from image 3.\nExterior invariants from photos 1-2: our shop is ONLY the small former Mar Coffee bay to the RIGHT of ALNAWRAS clothing store, with closed white roller shutter of the next unit on its RIGHT. It is a small 2.79m-wide bay between weathered charcoal-gray piers. Keep the real single full-width cream roller shutter above the existing glazed transom, left-third inward hinged aluminum glass door, right-two-thirds service glazing, dark stone threshold step at sidewalk. Preserve the actual silver aluminum framing proportions and sign fascia footprint. Keep the neighboring blue ALNAWRAS letters and its window of clothes/mannequins, the large black fabric canopy stretched from top-right over sidewalk, dangling eucalyptus leaves, AC condensers above the neighbor, weathered urban facade, scored gray concrete sidewalk and round manhole directly at the door/window joint. NO invented broad pale limestone facade. Keep existing storefront position and proportions very close to the photos.\nEasy Food fit-out invariants from image 3: forest-green #146B45 fascia and counter cladding, cream logo 'easy' with small 'FOOD' underneath and three diagonal cream slash strokes, Arabic 'إيزي فود' at fascia right, lime accent strips. Two small adjacent customer hatches fit inside the EXISTING right glazing, labels 'ORDER & PAY' and 'COLLECT' with Arabic 'اطلب وادفع' and 'استلم طلبك'. Keep the proposed dark upper ventilation inserts within existing transom boundaries. Through the shop glass, show OUR NEW white tiled walls, light gray floor tiles, stainless fridge on interior left, salad prep line on interior right, clean NEW neutral ceiling. No trace of old orange ceiling grid, old mirror, cafe bench, old orange shelf or coffee graphics. No changes to kitchen layout.\nComposition: nearly frontal slightly oblique camera from the sidewalk at human eye height, like actual photo 2, showing some neighboring clothing shop to left and adjacent white shutter to right, full Easy Food fascia and canopy, enough sidewalk for round manhole and step. The shop should fill the central 60 percent of image, with surroundings readable. Soft natural daylight under canopy, believable details and mild existing building wear. No people to obscure the frontage. Photorealistic, not a collage, no watermark, no extra signage, no new doorway, no outdoor tables or stools.",
+  "review": "Generated image visually checked against the supplied exterior photographs: ALNAWRAS neighbor, black canopy, cream roller shutter, charcoal piers, aluminum storefront, dark threshold and round manhole. The Easy Food green fit-out remains. This is an AI concept visualization, not a photograph of completed construction.",
+  "limitations": "Generated lettering and small architectural details are interpretive. Interior scenes, models and plans remain unchanged."
+}

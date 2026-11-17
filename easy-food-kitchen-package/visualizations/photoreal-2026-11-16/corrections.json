@@ -14,5 +14,12 @@
     "view": "11",
     "prompt": "Use case: precise-object-edit. Image 1 is the target image to correct and reframe; Image 2 is the exact 3D model reference for geometry. Preserve the beautiful realistic materials, same rear-left WC footprint, toilet position, inside hand basin, cream accordion folding door, grey tiles and kitchen double wash sink in front of it. Correct ONLY the erroneous prep zone to the RIGHT of the WC: REMOVE the raised glass salad display and all colourful GN salad pans there. That is the rear RAW-PREP TABLE: a plain flat brushed stainless worktop with its existing produce sink on the LEFT and a RED RECTANGULAR CHOPPING BOARD on the RIGHT, exactly like image 2. No glass guard, no salad rail there. The actual saladette is at the FRONT of the shop out of this framing. Reframe CLOSER to the retained WC and its approach, using the same elevated angle, so the composition shows the toilet, pleated folding door, small WC hand basin, kitchen double wash sink just in front, part of the two chillers at left, and this corrected short produce-sink/red-board table on the right. Crop the farther hot appliances mostly out of view instead of inventing equipment. Upper partition portions remain deliberately removed as an architectural cutaway. No people, labels, arrows or text. Preserve the tiny confined scale; do not make the WC larger.",
     "selected_generation": "exec-19420a6a-7a0d-41fc-a3cc-f8991a7c92ee.png"
+  },
+  {
+    "view": "05",
+    "date": "2026-11-17",
+    "scope": "Exterior only: match the actual shop frontage and surroundings while retaining the approved Easy Food decoration and kitchen planning.",
+    "prompt_file": "exterior-revision-2026-11-17.json",
+    "selected_file": "images/05-A-exterior-site-matched-2026-11-17.png"
   }
 ]

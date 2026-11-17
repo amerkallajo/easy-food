@@ -21,7 +21,7 @@ BRAND = "easy-food-identity-v2-green/generated/"
 
 # name -> (source, widths, quality)
 IMAGES = {
-    "shopfront": (PHOTO + "05-A-exterior-signage-order-collect.png", (1587, 1100, 720), 80),
+    "shopfront-site": (PHOTO + "05-A-exterior-site-matched-2026-11-17.png", (1448, 1100, 720), 80),
     "interior-door": (PHOTO + "03-A-interior-from-door.png", (1587, 1000, 640), 80),
     "interior-back": (PHOTO + "04-A-interior-from-back.png", (1587, 1000, 640), 80),
     "topdown": (PHOTO + "02-A-top-down-cutaway.png", (1585, 1000, 640), 80),
@@ -48,11 +48,11 @@ def build_images():
             print(f"{out.relative_to(ROOT)}  {w}x{h}  {out.stat().st_size // 1024} KB")
 
     # Social preview: 1200 x 630 crop of the shopfront, centred on the fascia.
-    im = Image.open(ROOT / IMAGES["shopfront"][0]).convert("RGB")
+    im = Image.open(ROOT / IMAGES["shopfront-site"][0]).convert("RGB")
     scale = 1200 / im.width
     im = im.resize((1200, round(im.height * scale)), Image.LANCZOS)
     top = round(im.height * 0.12)
-    im.crop((0, top, 1200, top + 630)).save(OUT_IMG / "og-shopfront.jpg", "JPEG", quality=84, optimize=True)
+    im.crop((0, top, 1200, top + 630)).save(OUT_IMG / "og-shopfront-site.jpg", "JPEG", quality=84, optimize=True)
 
 
 def build_fonts():
