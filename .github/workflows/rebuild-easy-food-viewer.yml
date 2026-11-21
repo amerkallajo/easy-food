@@ -5,6 +5,15 @@ on:
     branches: [main]
     paths:
       - 'easy-food-kitchen-package/model/source/viewer.template.html'
+      - 'easy-food-kitchen-package/model/source/viewer.src.js'
+      - 'easy-food-kitchen-package/model/source/make_viewer.py'
+      - '.github/workflows/rebuild-easy-food-viewer.yml'
+  pull_request:
+    paths:
+      - 'easy-food-kitchen-package/model/source/viewer.template.html'
+      - 'easy-food-kitchen-package/model/source/viewer.src.js'
+      - 'easy-food-kitchen-package/model/source/make_viewer.py'
+      - '.github/workflows/rebuild-easy-food-viewer.yml'
   workflow_dispatch:
 
 permissions:
@@ -16,14 +25,40 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Rebuild self-contained viewer
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: easy-food-kitchen-package/model/source/package-lock.json
+      - name: Bundle Three.js viewer
+        working-directory: easy-food-kitchen-package/model/source
+        run: |
+          npm ci
+          npm run build:viewer
+      - name: Build fast and offline viewers
         run: python3 easy-food-kitchen-package/model/source/make_viewer.py
-      - name: Commit updated viewer
+      - name: Check generated viewer size and lazy data
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('easy-food-kitchen-package/model/viewer')
+          lite = (p / 'viewer.html').read_text(encoding='utf-8')
+          offline = (p / 'viewer-offline.html').read_text(encoding='utf-8')
+          assert len(lite.encode()) < 2_000_000, 'Online viewer unexpectedly large'
+          assert 'window.EASYFOOD_META' in lite and 'easy-food-kitchen-' in lite
+          assert 'window.EASYFOOD_MODELS' in offline and len(offline) > 20_000_000
+          print('Fast viewer:', len(lite), 'chars; offline:', len(offline), 'chars')
+          PY
+      - name: Commit generated viewers
+        if: github.event_name != 'pull_request'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add easy-food-kitchen-package/model/source/viewer.bundle.js
           git add easy-food-kitchen-package/model/viewer/viewer.html
+          git add easy-food-kitchen-package/model/viewer/viewer-offline.html
           if ! git diff --cached --quiet; then
-            git commit -m "Rebuild published Easy Food 3D viewer"
+            git commit -m "Rebuild optimized Easy Food 3D viewers"
             git push
           fi
