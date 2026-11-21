@@ -44,7 +44,8 @@ All money figures are estimates built on stated assumptions; see document 4.
 | `11-A-retained-wc-accordion.png` | Retained rear-left toilet, folding door and the revised equipment arrangement |
 | `model/easy-food-kitchen-A.glb`, `-B.glb` | Portable 3D model (opens in Windows 3D Viewer, Blender, any glTF viewer) |
 | `model/easy-food-kitchen-A.obj` + `.mtl`, `-B` | Mesh for Blender, SketchUp, 3ds Max |
-| `model/viewer/viewer.html` | **Double-click to orbit the model in a browser**, offline. One self-contained file. Buttons switch views, layers, layout A/B and Arabic/English labels |
+| `model/viewer/viewer.html` | **Fast online 3D viewer**. Loads layout A or B on demand; needs the adjacent GLB files on a web server. Buttons switch views, layers, layout A/B and Arabic/English labels |
+| `model/viewer/viewer-offline.html` | **Self-contained offline viewer**. Download the single HTML file to use without internet. |
 | `model/layout-A.json`, `-B.json` | Equipment footprints in metres |
 | `model/source/build_model.py` | **Editable source.** Change dimensions or equipment, run it, and the GLB, OBJ, JSON and SVG plans are regenerated together |
 
@@ -63,7 +64,7 @@ node render.cjs                # eleven PNG renders in each language, plans and 
 npm run verify:viewer          # offline controls, languages, layouts, mobile and console
 ```
 
-`make_viewer.py` needs `viewer.bundle.js` in `model/source/` (a copy is kept there). `npm run build:viewer` builds it using the pinned Three.js 0.170.0 and esbuild dependencies in this folder. The delivered viewer still opens offline with no installation.
+`make_viewer.py` needs `viewer.bundle.js` in `model/source/` (a copy is kept there). `npm run build:viewer` builds it using the pinned Three.js 0.170.0 and esbuild dependencies in this folder. The delivered `viewer-offline.html` still opens offline with no installation; `viewer.html` is optimized for online browsing and phones.
 
 ### 3D detail revision, 16 November 2026
 
