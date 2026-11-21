@@ -10,7 +10,8 @@ const q = new URLSearchParams(location.search);
 let variant = q.get('m') || 'A';
 let lang = q.get('lang') || 'ar';
 const shot = q.get('shot') === '1';
-const site = window.EASYFOOD_MODELS.A.site;
+const modelStore = window.EASYFOOD_MODELS || window.EASYFOOD_META;
+const site = modelStore.A.site;
 const CX = site.W / 2;
 // model coords: x across, y up, z = -depth (street is +z, back wall is z = -5.06)
 const P = (x, depth, up) => new THREE.Vector3(x, up, -depth);
@@ -68,8 +69,9 @@ const EXT = [  // exterior annotations: x, depth, up, en, ar
   [3.25, -3.1, 1.75, 'Delivery riders wait here', 'انتظار عمال التوصيل'],
 ];
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
-renderer.setPixelRatio(shot ? 1 : Math.min(2, devicePixelRatio));
+const mobileGraphics = matchMedia('(max-width: 800px)').matches;
+const renderer = new THREE.WebGLRenderer({ antialias: !mobileGraphics, preserveDrawingBuffer: shot });
+renderer.setPixelRatio(shot ? 1 : Math.min(mobileGraphics ? 1.25 : 2, devicePixelRatio));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -93,7 +95,7 @@ const hemi = new THREE.HemisphereLight(0xdfeaf5, 0x8a8172, 0.9);
 scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xffeccf, 2.2);
 sun.castShadow = true;
-sun.shadow.mapSize.set(4096, 4096);
+sun.shadow.mapSize.set(mobileGraphics ? 1024 : 2048, mobileGraphics ? 1024 : 2048);
 sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
 Object.assign(sun.shadow.camera, { left: -7, right: 7, top: 8, bottom: -8, near: 0.5, far: 40 });
 scene.add(sun); scene.add(sun.target);
@@ -279,7 +281,7 @@ function buildLabels(mode) {
     mk(lang === 'ar' ? `حمّام محفوظ · ${site.wc_w.toFixed(2)} × ${site.wc_d.toFixed(2)} م افتراضي` : `Retained WC · ${site.wc_w.toFixed(2)} × ${site.wc_d.toFixed(2)} m assumed`, 'ex', P(site.wc_w / 2, site.wc_y0 + 0.65, 1.28));
     mk(lang === 'ar' ? 'باب أكورديون · بلا قوس فتح بالممر' : 'Accordion door · no hinged aisle sweep', '', P(site.wc_w, site.wc_y0 + 0.48, 1.05));
   } else if (mode === 'stations') {
-    for (const s of window.EASYFOOD_MODELS[variant].stations) {
+    for (const s of modelStore[variant].stations) {
       const txt = lang === 'ar' ? s[4] : s[3];
       const n = txt.split(' ')[0]; const cooked = +n >= 5;
       mk(`<i class="${cooked ? 'rte' : 'raw'}">${n}</i>${txt.slice(n.length)}`, 'st', new THREE.Vector3(s[0], s[1], s[2]));
@@ -329,8 +331,10 @@ function buildUi() {
 function load(v) {
   window.__ready = false;
   variant = v;
+  $('loading').hidden = false;
+  $('loading').textContent = lang === 'ar' ? 'جار تحميل نموذج المطبخ ثلاثي الأبعاد…' : 'Loading the 3D kitchen model…';
   if (root) { scene.remove(root); root.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
-  new GLTFLoader().parse(b64ToBuffer(window.EASYFOOD_MODELS[variant].glb), '', (gltf) => {
+  const onLoaded = (gltf) => {
     root = gltf.scene; scene.add(root); layers = {};
     const todoEdges = [];
     root.traverse(o => {
@@ -350,8 +354,23 @@ function load(v) {
     buildUi();
     applyView(viewName);
     renderer.setAnimationLoop(frame);
+    $('loading').hidden = true;
     setTimeout(() => { window.__ready = true; }, 600);
-  }, (err) => { $('title').textContent = 'Model failed to load: ' + err; });
+  };
+  const onError = (err) => {
+    console.error('Easy Food 3D failed to load', err);
+    $('loading').hidden = false;
+    $('loading').textContent = lang === 'ar'
+      ? 'تعذر تحميل النموذج. تحقق من اتصال الإنترنت ثم أعد تحميل الصفحة، أو افتح النسخة دون اتصال.'
+      : 'Could not load the model. Check your connection and reload, or open the offline version.';
+    $('title').textContent = lang === 'ar' ? 'تعذر تحميل النموذج' : 'Model failed to load';
+  };
+  const loader = new GLTFLoader();
+  if (modelStore[variant].glb) {
+    loader.parse(b64ToBuffer(modelStore[variant].glb), '', onLoaded, onError);
+  } else {
+    loader.load(`../easy-food-kitchen-${variant}.glb`, onLoaded, undefined, onError);
+  }
 }
 load(variant);
 addEventListener('resize', () => applyView(viewName));

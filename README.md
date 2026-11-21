@@ -3,7 +3,8 @@
 Easy Food project in Damascus: the kitchen concept, interactive 3D model, planning documents, and visual identity.
 
 - **Live website:** https://amerkallajo.github.io/easy-food/
-- **Interactive kitchen:** https://amerkallajo.github.io/easy-food/easy-food-kitchen-package/model/viewer/viewer.html
+- **Interactive kitchen (optimized for phones):** https://amerkallajo.github.io/easy-food/easy-food-kitchen-package/model/viewer/viewer.html
+- **Offline single-file backup:** https://amerkallajo.github.io/easy-food/easy-food-kitchen-package/model/viewer/viewer-offline.html
 - **Green visual identity:** https://amerkallajo.github.io/easy-food/easy-food-identity-v2-green/
 
 ## Project files
@@ -24,7 +25,7 @@ No build is required to view the published project. From this directory:
 python -m http.server 8000 --bind 127.0.0.1
 ```
 
-Open http://127.0.0.1:8000/. The kitchen viewer also works directly from its HTML file offline. For model regeneration, see the kitchen package README.
+Open http://127.0.0.1:8000/. The standard kitchen viewer downloads only the selected GLB model (A or B) for faster mobile loading. The separate `viewer-offline.html` file works directly offline after being downloaded. For model regeneration, see the kitchen package README.
 
 ## Publishing
 
