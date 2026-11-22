@@ -1,5 +1,4 @@
-// Offline viewer for the Easy Food kitchen model.
-// Bundled with esbuild, then inlined into ../viewer/viewer.html by make_viewer.py (single self-contained file).
+// Shared by the online and self-contained offline kitchen viewers.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -7,8 +6,8 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
 
 const q = new URLSearchParams(location.search);
-let variant = q.get('m') || 'A';
-let lang = q.get('lang') || 'ar';
+let variant = q.get('m')?.toUpperCase() === 'B' ? 'B' : 'A';
+let lang = q.get('lang')?.toLowerCase() === 'en' ? 'en' : 'ar';
 const shot = q.get('shot') === '1';
 const modelStore = window.EASYFOOD_MODELS || window.EASYFOOD_META;
 const site = modelStore.A.site;
@@ -47,7 +46,8 @@ const VIEWS = {
     pos: P(3.90, 1.50, 5.20), tgt: P(0.80, 4.10, 0.55), fov: 44,
     hide: ['ceiling', 'wall_right', 'front', 'people_out', 'people_in', 'context', 'site', 'flow', 'mep', 'highshelf', 'shelves', 'wc_upper'], labels: 'wc' },
 };
-let viewName = q.get('view') || 'cutaway';
+const requestedView = q.get('view');
+let viewName = Object.prototype.hasOwnProperty.call(VIEWS, requestedView) ? requestedView : 'cutaway';
 
 const T = {
   note: { en: `Concept model: ${site.W.toFixed(2)} x ${site.D.toFixed(2)} m from the owner + photographs. Ceiling ${site.H.toFixed(2)} m, wall thickness, sidewalk depth and service points are ASSUMED. Rear-left WC retained; its size is provisional.`,
@@ -57,7 +57,20 @@ const T = {
   staff: { en: 'Staff positions at peak', ar: 'مواقع الموظفين وقت الذروة' },
   layout: { en: 'Layout', ar: 'المخطط' },
   view: { en: 'View', ar: 'المشهد' }, layers: { en: 'Layers', ar: 'الطبقات' },
-  help: { en: 'Drag to orbit, wheel to zoom, right-drag to pan.', ar: 'اسحب للتدوير، العجلة للتكبير، الزر الأيمن للتحريك.' },
+  help: { en: 'Drag to orbit. Pinch or scroll to zoom. Drag with two fingers or the right mouse button to pan.',
+          ar: 'اسحب للتدوير. قرّب أو باعد بإصبعين أو استخدم عجلة الفأرة للتكبير. اسحب بإصبعين أو بالزر الأيمن للتحريك.' },
+  loading: { en: 'Downloading the 3D kitchen model…', ar: 'جار تنزيل نموذج المطبخ ثلاثي الأبعاد…' },
+  slow: { en: 'Still downloading. This can take longer on a slow connection.', ar: 'التنزيل مستمر. قد يستغرق وقتاً أطول عند بطء الاتصال.' },
+  preparing: { en: 'Preparing the 3D view…', ar: 'جار تجهيز العرض ثلاثي الأبعاد…' },
+  failed: { en: 'The model could not load. Try again or open the kitchen plan.', ar: 'تعذّر تحميل النموذج. أعد المحاولة أو افتح مخطط المطبخ.' },
+  webgl: { en: '3D rendering is unavailable in this browser. You can still open the kitchen plan.', ar: 'العرض ثلاثي الأبعاد غير متاح في هذا المتصفح. يمكنك فتح مخطط المطبخ.' },
+  context: { en: 'The 3D view stopped. Reload it or open the kitchen plan.', ar: 'توقف العرض ثلاثي الأبعاد. أعد تحميله أو افتح مخطط المطبخ.' },
+  local: { en: 'Open the self-contained viewer to use 3D offline.', ar: 'افتح نسخة العارض المخصصة للعمل دون اتصال لتشغيل النموذج.' },
+  retry: { en: 'Try again', ar: 'أعد المحاولة' },
+  reload: { en: 'Reload 3D viewer', ar: 'أعد تحميل العارض' },
+  resume: { en: 'Keep current layout', ar: 'ابق على المخطط الحالي' },
+  plan: { en: 'Open plan', ar: 'افتح المخطط' },
+  offline: { en: 'Download offline viewer', ar: 'نزّل العارض دون اتصال' },
 };
 const EXT = [  // exterior annotations: x, depth, up, en, ar
   [1.42, -0.25, 2.25, '1 Order + pay window', '1 نافذة الطلب والدفع'],
@@ -69,47 +82,56 @@ const EXT = [  // exterior annotations: x, depth, up, en, ar
   [3.25, -3.1, 1.75, 'Delivery riders wait here', 'انتظار عمال التوصيل'],
 ];
 
-const mobileGraphics = matchMedia('(max-width: 800px)').matches;
-const renderer = new THREE.WebGLRenderer({ antialias: !mobileGraphics, preserveDrawingBuffer: shot });
-renderer.setPixelRatio(shot ? 1 : Math.min(mobileGraphics ? 1.25 : 2, devicePixelRatio));
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.0;
-document.getElementById('stage').appendChild(renderer.domElement);
-
+const mobileGraphics = !shot && matchMedia('(max-width: 800px), (pointer: coarse)').matches;
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xf3f1ea);
-const pmrem = new THREE.PMREMGenerator(renderer);
-const environment = new RoomEnvironment();
-// Long neutral reflection cards reveal curved steel edges without external HDR files.
-for (const [x, y, z, w, h, d] of [[-7, 5, 2, 0.1, 7, 1.5], [5, 6, -3, 0.1, 8, 2], [0, 9, 0, 5, 0.1, 2]]) {
-  const card = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshBasicMaterial({ color: new THREE.Color(5, 5, 5) }));
-  card.position.set(x, y, z); environment.add(card);
-}
-scene.environment = pmrem.fromScene(environment, 0.025).texture;
-environment.dispose(); pmrem.dispose();
-scene.environmentIntensity = 0.55;
+const inner = [], strips = [];
+let renderer, hemi, sun;
 
-const hemi = new THREE.HemisphereLight(0xdfeaf5, 0x8a8172, 0.9);
-scene.add(hemi);
-const sun = new THREE.DirectionalLight(0xffeccf, 2.2);
-sun.castShadow = true;
-sun.shadow.mapSize.set(mobileGraphics ? 1024 : 2048, mobileGraphics ? 1024 : 2048);
-sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
-Object.assign(sun.shadow.camera, { left: -7, right: 7, top: 8, bottom: -8, near: 0.5, far: 40 });
-scene.add(sun); scene.add(sun.target);
-const inner = [];
-RectAreaLightUniformsLib.init();
-const strips = [];
-for (const depth of [1.15, 3.45]) {
-  const light = new THREE.RectAreaLight(0xfff4e3, 0, 1.8, 0.24);
-  light.position.copy(P(CX, depth, site.H - 0.08)); light.lookAt(P(CX, depth, 0)); scene.add(light); strips.push(light);
-}
-[[CX, 1.0], [CX, 2.6], [CX, 4.1]].forEach(([x, d]) => {
-  const l = new THREE.PointLight(0xfff1dc, 0, 7, 1.6); l.position.copy(P(x, d, 2.75)); l.castShadow = d > 2 && d < 3; l.shadow.mapSize.set(1024, 1024); l.shadow.bias = -0.002; scene.add(l); inner.push(l);
-});
+function initGraphics() {
+  // Keep the last frame visible when WebKit composites an idle canvas.
+  renderer = new THREE.WebGLRenderer({ antialias: !mobileGraphics, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(shot ? 1 : Math.min(mobileGraphics ? 1 : 2, devicePixelRatio));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.autoUpdate = false;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.0;
+  document.getElementById('stage').appendChild(renderer.domElement);
 
+  scene.background = new THREE.Color(0xf3f1ea);
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const environment = new RoomEnvironment();
+  // Long neutral reflection cards reveal curved steel edges without external HDR files.
+  for (const [x, y, z, w, h, d] of [[-7, 5, 2, 0.1, 7, 1.5], [5, 6, -3, 0.1, 8, 2], [0, 9, 0, 5, 0.1, 2]]) {
+    const card = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshBasicMaterial({ color: new THREE.Color(5, 5, 5) }));
+    card.position.set(x, y, z); environment.add(card);
+  }
+  scene.environment = pmrem.fromScene(environment, 0.025).texture;
+  environment.dispose(); pmrem.dispose();
+  scene.environmentIntensity = 0.55;
+
+  hemi = new THREE.HemisphereLight(0xdfeaf5, 0x8a8172, 0.9);
+  scene.add(hemi);
+  sun = new THREE.DirectionalLight(0xffeccf, 2.2);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(mobileGraphics ? 1024 : 2048, mobileGraphics ? 1024 : 2048);
+  sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
+  Object.assign(sun.shadow.camera, { left: -7, right: 7, top: 8, bottom: -8, near: 0.5, far: 40 });
+  scene.add(sun); scene.add(sun.target);
+  RectAreaLightUniformsLib.init();
+  for (const depth of [1.15, 3.45]) {
+    const light = new THREE.RectAreaLight(0xfff4e3, 0, 1.8, 0.24);
+    light.position.copy(P(CX, depth, site.H - 0.08)); light.lookAt(P(CX, depth, 0)); scene.add(light); strips.push(light);
+  }
+  [[CX, 1.0], [CX, 2.6], [CX, 4.1]].forEach(([x, d]) => {
+    const l = new THREE.PointLight(0xfff1dc, 0, 7, 1.6); l.position.copy(P(x, d, 2.75)); l.castShadow = !mobileGraphics && d > 2 && d < 3; l.shadow.mapSize.set(1024, 1024); l.shadow.bias = -0.002; scene.add(l); inner.push(l);
+  });
+  renderer.domElement.addEventListener('webglcontextlost', () => {
+    graphicsAvailable = false;
+    activeDownload?.abort();
+    showFailure('context', variant, () => location.reload(), 'reload');
+  });
+}
 
 // ---------- surface detail: procedural textures, world-space UVs, edge lines ----------
 function canvasTex(size, draw, metres) {
@@ -169,8 +191,7 @@ function worldUV(geo, metres) {
   }
   geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
 }
-const matCache = {};
-function polish(o) {
+function polish(o, matCache) {
   const name = o.material.name;
   if (o.material.map && !TEX[name]) return;            // signage textures stay as they are
   if (!matCache[name]) {
@@ -209,8 +230,62 @@ function addEdges(o, layer) {
 let camera, controls, root;
 let layers = {};
 const labelNodes = [];
-const overlay = document.getElementById('labels');
 const $ = (id) => document.getElementById(id);
+const overlay = $('labels');
+const offline = Boolean(window.EASYFOOD_MODELS);
+let graphicsAvailable = false;
+let activeDownload;
+let releaseModel;
+let renderPending = false;
+
+function setControlsEnabled(enabled) {
+  $('b-menu').hidden = !enabled;
+  $('ui').inert = !enabled;
+  $('ui').style.visibility = enabled ? '' : 'hidden';
+}
+
+function setStatus(message) {
+  $('loading').firstElementChild.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  $('status').textContent = T[message][lang];
+  $('loading').hidden = false;
+}
+
+function showFailure(message, layout, retry, retryLabel = 'retry', canResume = false) {
+  window.__ready = false;
+  setControlsEnabled(false);
+  setStatus(message);
+  const base = location.protocol === 'file:'
+    ? 'https://amerkallajo.github.io/easy-food/easy-food-kitchen-package/model/viewer/'
+    : location.href;
+  const preview = $('preview');
+  // Use sibling plans online and keep the downloaded viewer self-contained.
+  preview.hidden = offline || location.protocol === 'file:';
+  const plan = $('preview-link');
+  plan.href = new URL('../../plans/layout-' + layout + '.png', base);
+  plan.textContent = T.plan[lang] + ' ' + layout;
+  if (!preview.hidden) {
+    preview.src = plan.href;
+    preview.alt = plan.textContent;
+  }
+  const offlineLink = $('offline-link');
+  offlineLink.hidden = offline;
+  offlineLink.href = new URL('viewer-offline.html', base);
+  offlineLink.textContent = T.offline[lang];
+  const button = $('b-retry');
+  button.hidden = !retry;
+  button.onclick = retry;
+  button.textContent = T[retryLabel][lang];
+  const resume = $('b-resume');
+  resume.hidden = !canResume;
+  resume.textContent = T.resume[lang];
+  resume.onclick = () => {
+    window.__ready = true;
+    $('loading').hidden = true;
+    setControlsEnabled(true);
+    $('b-menu').focus();
+  };
+  $('recovery').hidden = false;
+}
 
 function b64ToBuffer(b64) {
   const bin = atob(b64); const u8 = new Uint8Array(bin.length);
@@ -226,14 +301,12 @@ function applyView(name) {
   document.documentElement.lang = lang;
   document.body.classList.toggle('rtl', lang === 'ar');
   $('title').textContent = lang === 'ar' ? `إيزي فود - المخطط ${variant} - ${v.ar}` : `Easy Food - Layout ${variant} - ${v.en}`;
-  $('note').textContent = T.note[lang];
+  $('note').textContent = $('mobile-note').textContent = T.note[lang];
   $('lg-raw').textContent = T.raw[lang]; $('lg-rte').textContent = T.rte[lang]; $('lg-staff').textContent = T.staff[lang];
   $('t-view').textContent = T.view[lang]; $('t-layers').textContent = T.layers[lang]; $('t-help').textContent = T.help[lang];
-  const w = innerWidth, h = innerHeight;
-  if (v.ortho) {
-    const a = w / h; let s = v.ortho; if (a < 1.75) s = v.ortho * 1.75 / a;
-    camera = new THREE.OrthographicCamera(-s * a, s * a, s, -s, 0.1, 60);
-  } else camera = new THREE.PerspectiveCamera(w < h ? Math.min(75, v.fov * 1.5) : v.fov, w / h, 0.05, 80);
+  camera = v.ortho
+    ? new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 60)
+    : new THREE.PerspectiveCamera(v.fov, 1, 0.05, 80);
   camera.position.copy(pos);
   if (v.up) camera.up.set(...v.up); else camera.up.set(0, 1, 0);
   camera.lookAt(target);
@@ -258,6 +331,9 @@ function applyView(name) {
   buildLabels(v.labels);
   document.querySelectorAll('#views button').forEach(b => b.classList.toggle('on', b.dataset.v === name));
   $('legend').style.display = v.labels === 'stations' ? 'block' : 'none';
+  renderer.shadowMap.needsUpdate = true;
+  resize();
+  controls.addEventListener('change', requestRender);
 }
 
 function mk(html, cls, pos, obj) {
@@ -302,12 +378,49 @@ function placeLabels() {
   }
 }
 
-function frame() {
-  renderer.setSize(innerWidth, innerHeight, false);
-  renderer.domElement.style.width = '100%'; renderer.domElement.style.height = '100%';
-  if (camera.isPerspectiveCamera) { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
-  renderer.render(scene, camera);
-  placeLabels();
+function resize() {
+  if (!camera || !graphicsAvailable) return;
+  const w = innerWidth, h = innerHeight, aspect = w / h;
+  const view = VIEWS[viewName];
+  if (camera.isOrthographicCamera) {
+    const extent = view.ortho * Math.max(1, 1.75 / aspect);
+    Object.assign(camera, { left: -extent * aspect, right: extent * aspect, top: extent, bottom: -extent });
+  } else {
+    camera.aspect = aspect;
+    // Fit the overview across a portrait screen without moving the orbit target.
+    if (aspect < 1 && view.fov <= 44) {
+      const halfWidth = Math.tan(THREE.MathUtils.degToRad(Math.max(40, view.fov) / 2));
+      camera.fov = Math.min(85, THREE.MathUtils.radToDeg(2 * Math.atan(halfWidth / aspect)));
+    } else {
+      camera.fov = aspect < 1 ? Math.min(75, view.fov * 1.5) : view.fov;
+    }
+  }
+  camera.updateProjectionMatrix();
+  const size = renderer.getSize(new THREE.Vector2());
+  if (size.x !== w || size.y !== h) renderer.setSize(w, h, false);
+  requestRender();
+}
+
+function requestRender() {
+  if (renderPending || !graphicsAvailable) return;
+  renderPending = true;
+  requestAnimationFrame(() => {
+    renderPending = false;
+    if (!graphicsAvailable) return;
+    try {
+      renderer.render(scene, camera);
+      placeLabels();
+      if ($('loading').hidden || !$('recovery').hidden || activeDownload) return;
+      $('loading').hidden = true;
+      setControlsEnabled(true);
+      window.__ready = true;
+    } catch (error) {
+      console.error('Easy Food 3D rendering failed', error);
+      graphicsAvailable = false;
+      activeDownload?.abort();
+      showFailure('context', variant, () => location.reload(), 'reload');
+    }
+  });
 }
 
 function buildUi() {
@@ -319,58 +432,142 @@ function buildUi() {
   const lb = $('layers'); lb.innerHTML = '';
   for (const k of Object.keys(layers).sort()) {
     const b = document.createElement('button'); b.textContent = k; b.dataset.l = k;
-    b.onclick = () => { const on = !layers[k][0].visible; layers[k].forEach(o => (o.visible = on)); b.classList.toggle('on', on); };
+    b.onclick = () => {
+      const on = !layers[k][0].visible;
+      layers[k].forEach(o => (o.visible = on));
+      b.classList.toggle('on', on);
+      renderer.shadowMap.needsUpdate = true;
+      requestRender();
+    };
     lb.appendChild(b);
   }
   $('b-lang').textContent = lang === 'ar' ? 'English' : 'العربية';
-  $('b-lang').onclick = () => { lang = lang === 'ar' ? 'en' : 'ar'; buildUi(); applyView(viewName); };
+  $('b-lang').onclick = () => {
+    lang = lang === 'ar' ? 'en' : 'ar';
+    buildUi();
+    applyView(viewName);
+  };
   $('b-layout').textContent = `${T.layout[lang]} ${variant === 'A' ? 'B' : 'A'}`;
   $('b-layout').onclick = () => load(variant === 'A' ? 'B' : 'A');
 }
 
-function load(v) {
+function installModel(model, layout) {
+  const materials = new Set(), geometries = new Set();
+  const materialCache = Object.create(null);
+  const edges = [];
+  const modelLayers = {};
+  model.traverse(o => {
+    const layer = o.userData.layer;
+    if (layer) (modelLayers[layer] ||= []).push(o);
+    if (!o.isMesh) return;
+    materials.add(o.material);
+    geometries.add(o.geometry);
+    o.castShadow = !o.material.transparent && !o.material.map;
+    o.receiveShadow = true;
+    if (o.material.map) o.material.map.anisotropy = 8;
+    polish(o, materialCache);
+    if (o.material.transparent) o.material.depthWrite = false;
+    if (!mobileGraphics) {
+      let parent = o;
+      while (parent && !parent.userData.layer) parent = parent.parent;
+      edges.push([o, parent?.userData.layer]);
+    }
+  });
+  for (const [mesh, layer] of edges) {
+    addEdges(mesh, layer);
+    for (const child of mesh.children) {
+      if (child.isLineSegments && child.material === edgeMat) geometries.add(child.geometry);
+    }
+  }
+  const textures = new Set();
+  for (const material of materials) {
+    for (const value of Object.values(material)) {
+      if (value?.isTexture) textures.add(value);
+    }
+  }
+
+  if (root) releaseModel();
+  releaseModel = () => {
+    scene.remove(model);
+    for (const geometry of geometries) geometry.dispose();
+    for (const material of [...materials, ...Object.values(materialCache)]) material.dispose();
+    const bitmaps = new Set();
+    for (const texture of textures) {
+      if (typeof texture.image?.close === 'function') bitmaps.add(texture.image);
+      texture.dispose();
+    }
+    for (const bitmap of bitmaps) bitmap.close();
+  };
+  root = model;
+  variant = layout;
+  layers = modelLayers;
+  scene.add(root);
+  buildUi();
+  applyView(viewName);
+}
+
+async function downloadModel(layout, signal) {
+  const response = await fetch('../easy-food-kitchen-' + layout + '.glb', { signal });
+  if (!response.ok) throw new Error('Model download returned HTTP ' + response.status);
+  return response.arrayBuffer();
+}
+
+async function load(layout) {
+  if (activeDownload || !graphicsAvailable) return;
   window.__ready = false;
-  variant = v;
-  $('loading').hidden = false;
-  $('loading').textContent = lang === 'ar' ? 'جار تحميل نموذج المطبخ ثلاثي الأبعاد…' : 'Loading the 3D kitchen model…';
-  if (root) { scene.remove(root); root.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
-  const onLoaded = (gltf) => {
-    root = gltf.scene; scene.add(root); layers = {};
-    const todoEdges = [];
-    root.traverse(o => {
-      if (o.userData && o.userData.layer) (layers[o.userData.layer] ||= []).push(o);
-      if (o.isMesh) {
-        const transparent = o.material.transparent;
-        o.castShadow = !transparent; o.receiveShadow = true;
-        if (o.material.map) { o.material.map.anisotropy = 8; o.castShadow = false; }
-        let layer = o.userData.layer; for (let q2 = o.parent; !layer && q2; q2 = q2.parent) layer = q2.userData && q2.userData.layer;
-        polish(o);
-        if (transparent) o.material.depthWrite = false;
-        todoEdges.push([o, layer]);
-      }
-    });
-    todoEdges.forEach(([o, l]) => addEdges(o, l));
-    if (shot) document.body.classList.add('shot');
-    buildUi();
-    applyView(viewName);
-    renderer.setAnimationLoop(frame);
-    $('loading').hidden = true;
-    setTimeout(() => { window.__ready = true; }, 600);
-  };
-  const onError = (err) => {
-    console.error('Easy Food 3D failed to load', err);
-    $('loading').hidden = false;
-    $('loading').textContent = lang === 'ar'
-      ? 'تعذر تحميل النموذج. تحقق من اتصال الإنترنت ثم أعد تحميل الصفحة، أو افتح النسخة دون اتصال.'
-      : 'Could not load the model. Check your connection and reload, or open the offline version.';
-    $('title').textContent = lang === 'ar' ? 'تعذر تحميل النموذج' : 'Model failed to load';
-  };
-  const loader = new GLTFLoader();
-  if (modelStore[variant].glb) {
-    loader.parse(b64ToBuffer(modelStore[variant].glb), '', onLoaded, onError);
-  } else {
-    loader.load(`../easy-food-kitchen-${variant}.glb`, onLoaded, undefined, onError);
+  setControlsEnabled(false);
+  $('preview').hidden = true;
+  $('recovery').hidden = true;
+  setStatus(offline ? 'preparing' : 'loading');
+  const controller = new AbortController();
+  activeDownload = controller;
+  const slow = offline ? undefined : setTimeout(() => setStatus('slow'), 12000);
+  const deadline = offline ? undefined : setTimeout(() => controller.abort(), 90000);
+  let gltf;
+  try {
+    const data = offline
+      ? b64ToBuffer(modelStore[layout].glb)
+      : await downloadModel(layout, controller.signal);
+    clearTimeout(slow);
+    clearTimeout(deadline);
+    if (!graphicsAvailable) return;
+    setStatus('preparing');
+    gltf = await new GLTFLoader().parseAsync(data, '');
+  } catch (error) {
+    if (graphicsAvailable) {
+      console.error('Easy Food 3D model failed to load', error);
+      showFailure('failed', layout, () => load(layout), 'retry', Boolean(root));
+      if (root) $('b-retry').focus();
+    }
+    return;
+  } finally {
+    clearTimeout(slow);
+    clearTimeout(deadline);
+    activeDownload = undefined;
+  }
+  if (!graphicsAvailable) return;
+  try {
+    installModel(gltf.scene, layout);
+  } catch (error) {
+    console.error('Easy Food 3D scene setup failed', error);
+    graphicsAvailable = false;
+    showFailure('context', layout, () => location.reload(), 'reload');
   }
 }
-load(variant);
-addEventListener('resize', () => applyView(viewName));
+
+document.documentElement.lang = lang;
+document.body.classList.toggle('rtl', lang === 'ar');
+document.body.classList.toggle('shot', shot);
+if (!offline && location.protocol === 'file:') {
+  showFailure('local', variant);
+} else {
+  try {
+    initGraphics();
+    graphicsAvailable = true;
+    addEventListener('resize', resize);
+    load(variant);
+  } catch (error) {
+    console.warn('Easy Food 3D graphics unavailable', error);
+    showFailure('webgl', variant, () => location.reload(), 'reload');
+  }
+}

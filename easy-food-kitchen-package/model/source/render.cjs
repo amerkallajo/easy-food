@@ -5,7 +5,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const { pathToFileURL } = require('node:url');
 const pkg = path.resolve(__dirname, '../..');
-const viewer = pathToFileURL(path.join(pkg, 'model/viewer/viewer.html')).href;
+const viewer = pathToFileURL(path.join(pkg, 'model/viewer/viewer-offline.html')).href;
 const out = path.join(pkg, 'renders');
 fs.mkdirSync(out, { recursive: true });
 

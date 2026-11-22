@@ -58,7 +58,7 @@ cd model/source
 python build_model.py          # GLB, OBJ, JSON, SVG plans, viewer data  (needs numpy)
 node make_textures.cjs         # only if signage artwork changes
 npm run build:viewer           # rebuild bundle after viewer.src.js changes
-python make_viewer.py          # rebuilds the single-file viewer.html
+python make_viewer.py          # rebuilds viewer.html and viewer-offline.html
 python verify_model.py         # mesh bounds, nearby widths, GLB/PBR validation
 node render.cjs                # eleven PNG renders in each language, plans and flow image
 npm run verify:viewer          # offline controls, languages, layouts, mobile and console

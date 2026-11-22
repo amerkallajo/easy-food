@@ -7,5 +7,6 @@ require('esbuild').buildSync({
   bundle: true,
   minify: true,
   format: 'iife',
+  target: 'es2020',
 });
 console.log('Built viewer.bundle.js');

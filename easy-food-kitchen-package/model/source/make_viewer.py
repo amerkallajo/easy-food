@@ -44,7 +44,7 @@ def write_viewer(filename, payload):
     if '/*__DATA__*/' in html or '/*__BUNDLE__*/' in html:
         raise ValueError('Unfilled viewer template placeholders')
     output = os.path.join(VW, filename)
-    with open(output, 'w', encoding='utf-8') as f:
+    with open(output, 'w', encoding='utf-8', newline='\n') as f:
         f.write(html)
     print(f'{filename}: {os.path.getsize(output) / 1e6:.2f} MB')
 

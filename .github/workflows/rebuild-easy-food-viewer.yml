@@ -7,12 +7,20 @@ on:
       - 'easy-food-kitchen-package/model/source/viewer.template.html'
       - 'easy-food-kitchen-package/model/source/viewer.src.js'
       - 'easy-food-kitchen-package/model/source/make_viewer.py'
+      - 'easy-food-kitchen-package/model/source/build_viewer.cjs'
+      - 'easy-food-kitchen-package/model/source/package-lock.json'
+      - 'easy-food-kitchen-package/model/source/verify_viewer.cjs'
+      - 'easy-food-kitchen-package/model/viewer/model-data.js'
       - '.github/workflows/rebuild-easy-food-viewer.yml'
   pull_request:
     paths:
       - 'easy-food-kitchen-package/model/source/viewer.template.html'
       - 'easy-food-kitchen-package/model/source/viewer.src.js'
       - 'easy-food-kitchen-package/model/source/make_viewer.py'
+      - 'easy-food-kitchen-package/model/source/build_viewer.cjs'
+      - 'easy-food-kitchen-package/model/source/package-lock.json'
+      - 'easy-food-kitchen-package/model/source/verify_viewer.cjs'
+      - 'easy-food-kitchen-package/model/viewer/model-data.js'
       - '.github/workflows/rebuild-easy-food-viewer.yml'
   workflow_dispatch:
 
@@ -50,6 +58,17 @@ jobs:
           assert 'window.EASYFOOD_MODELS' in offline and len(offline) > 20_000_000
           print('Fast viewer:', len(lite), 'chars; offline:', len(offline), 'chars')
           PY
+      - name: Test online, offline, and WebKit 3D viewing
+        run: |
+          npm --prefix easy-food-kitchen-package/model/source exec -- playwright install --with-deps chromium webkit
+          python3 -m http.server 8768 --bind 127.0.0.1 &
+          server=$!
+          trap 'kill "$server"' EXIT
+          for attempt in {1..20}; do
+            if curl -fsS http://127.0.0.1:8768/ -o /dev/null; then break; fi
+            sleep 1
+          done
+          npm --prefix easy-food-kitchen-package/model/source run verify:viewer -- http://127.0.0.1:8768/ --webkit
       - name: Commit generated viewers
         if: github.event_name != 'pull_request'
         run: |
