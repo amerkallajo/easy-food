@@ -27,6 +27,8 @@ async function verifyOffline(browser) {
     page.on('request', req => { if (/^https?:/.test(req.url())) network.push(req.url()); });
 
     await page.goto(offlineUrl.href + '?lang=en');
+    const home = page.getByRole('link', { name: 'Back to homepage' });
+    assert.equal(await home.getAttribute('href'), 'https://amerkallajo.github.io/easy-food/');
     for (const [index, variant] of ['A', 'B', 'A'].entries()) {
       if (index > 0) {
         await openSection(page, 'settings');
@@ -94,6 +96,9 @@ async function verifyOnline(browser) {
     assert.deepEqual(requested, ['easy-food-kitchen-A.glb']);
     assert.deepEqual(logs, []);
     assert.match(await page.locator('#title').textContent(), /المخطط A/);
+    const arabicHome = page.getByRole('link', { name: 'العودة إلى الموقع' });
+    assert(await arabicHome.isVisible());
+    assert.equal(await page.locator('#bar').count(), 0);
     await page.reload({ waitUntil: 'domcontentloaded' });
     await ready(page);
     await openSection(page, 'settings');
@@ -127,7 +132,9 @@ async function verifyOnline(browser) {
     await page.locator('#b-retry').click();
     await ready(page);
     assert.match(await page.locator('#title').textContent(), /Layout B/);
-
+    await page.getByRole('link', { name: 'Back to homepage' }).focus();
+    await page.keyboard.press('Enter');
+    await page.waitForURL(site);
 
     await page.goto(new URL(viewerPath + '?m=invalid&lang=invalid&view=__proto__', site).href);
     await ready(page);
@@ -136,7 +143,7 @@ async function verifyOnline(browser) {
     assert.deepEqual(pageErrors, []);
     // The HTTP diagnostic can arrive after the fallback has already become visible.
     assert.deepEqual(logs.filter(log => !/status of 503|model failed to load Error: Model download returned HTTP 503/.test(log)), []);
-    console.log('Online mobile entry, lazy models, failed switch, retry, and invalid links passed');
+    console.log('Online mobile entry, lazy models, failed switch, retry, homepage link and invalid links passed');
   } finally {
     await context.close();
   }
@@ -181,8 +188,10 @@ async function verifyWithoutWebGL() {
     assert.match(await page.locator('#preview-link').getAttribute('href'), /layout-B\.png$/);
     assert.match(await page.locator('#offline-link').getAttribute('href'), /viewer-offline\.html$/);
     assert(await page.locator('#b-menu').isHidden());
+    await page.getByRole('link', { name: 'Back to homepage' }).click();
+    await page.waitForURL(site);
     assert.deepEqual(errors, []);
-    console.log('WebGL disabled: correct layout preview and offline download available');
+    console.log('WebGL disabled: layout preview, offline download and homepage link available');
   } finally {
     await browser.close();
   }

@@ -56,6 +56,7 @@ const T = {
   rte: { en: 'Cooked / ready-to-eat (steps 5-8)', ar: 'مطبوخ / جاهز للأكل (الخطوات 5-8)' },
   staff: { en: 'Staff positions at peak', ar: 'مواقع الموظفين وقت الذروة' },
   layout: { en: 'Layout', ar: 'المخطط' },
+  home: { en: 'Back to homepage', ar: 'العودة إلى الموقع' },
   view: { en: 'View', ar: 'المشهد' }, layers: { en: 'Layers', ar: 'الطبقات' },
   help: { en: 'Drag to orbit. Pinch or scroll to zoom. Drag with two fingers or the right mouse button to pan.',
           ar: 'اسحب للتدوير. قرّب أو باعد بإصبعين أو استخدم عجلة الفأرة للتكبير. اسحب بإصبعين أو بالزر الأيمن للتحريك.' },
@@ -298,10 +299,10 @@ function applyView(name) {
   const v = VIEWS[name];
   const pos = variant === 'B' && v.posB ? v.posB : v.pos;
   const target = variant === 'B' && v.tgtB ? v.tgtB : v.tgt;
-  document.documentElement.lang = lang;
-  document.body.classList.toggle('rtl', lang === 'ar');
+  updateLanguage();
   $('title').textContent = lang === 'ar' ? `إيزي فود - المخطط ${variant} - ${v.ar}` : `Easy Food - Layout ${variant} - ${v.en}`;
-  $('note').textContent = $('mobile-note').textContent = T.note[lang];
+  document.title = $('title').textContent;
+  $('note').textContent = T.note[lang];
   $('lg-raw').textContent = T.raw[lang]; $('lg-rte').textContent = T.rte[lang]; $('lg-staff').textContent = T.staff[lang];
   $('t-view').textContent = T.view[lang]; $('t-layers').textContent = T.layers[lang]; $('t-help').textContent = T.help[lang];
   camera = v.ortho
@@ -555,8 +556,15 @@ async function load(layout) {
   }
 }
 
-document.documentElement.lang = lang;
-document.body.classList.toggle('rtl', lang === 'ar');
+function updateLanguage() {
+  document.documentElement.lang = lang;
+  document.body.classList.toggle('rtl', lang === 'ar');
+  $('home-link').dir = lang === 'ar' ? 'rtl' : 'ltr';
+  $('home-text').textContent = T.home[lang];
+}
+
+updateLanguage();
+if (location.protocol === 'file:') $('home-link').href = 'https://amerkallajo.github.io/easy-food/';
 document.body.classList.toggle('shot', shot);
 if (!offline && location.protocol === 'file:') {
   showFailure('local', variant);
