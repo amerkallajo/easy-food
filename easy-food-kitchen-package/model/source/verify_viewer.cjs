@@ -98,8 +98,19 @@ async function verifyOnline(browser) {
     await ready(page);
     await openSection(page, 'settings');
     await page.locator('#b-lang').click();
-    await page.route('**/easy-food-kitchen-B.glb', route => route.fulfill({ status: 503 }));
-    await page.locator('#b-layout').click();
+    let releaseDownload;
+    const heldDownload = new Promise(resolve => { releaseDownload = resolve; });
+    await page.route('**/easy-food-kitchen-B.glb', async route => {
+      await heldDownload;
+      await route.fulfill({ status: 503 });
+    });
+    try {
+      await page.locator('#b-layout').click();
+      assert.match(await page.locator('#status').textContent(), /Downloading/);
+      assert(await page.locator('#b-retry').isHidden(), 'Retry must stay hidden during downloading');
+    } finally {
+      releaseDownload();
+    }
     await page.locator('#b-retry').waitFor({ state: 'visible' });
     assert.match(await page.locator('#status').textContent(), /could not load/);
     assert.match(await page.locator('#preview-link').getAttribute('href'), /layout-B\.png$/);
